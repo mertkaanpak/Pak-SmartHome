@@ -6,13 +6,15 @@
   "main": "src/server.js",
   "scripts": {
     "dev": "node --watch src/server.js",
-    "start": "node src/server.js"
+    "start": "node src/server.js",
+    "test": "node --test"
   },
   "dependencies": {
     "@tuya/tuya-connector-nodejs": "^2.1.2",
     "better-sqlite3": "^12.11.1",
     "cors": "^2.8.6",
     "dotenv": "^17.4.2",
-    "express": "^5.2.1"
+    "express": "^5.2.1",
+    "zod": "^4.6.5"
   }
 }

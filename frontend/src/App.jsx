@@ -1,164 +1,162 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
+import { fetchDevices, fetchIntegrations, sendCommand } from './api.js'
+import { DeviceCard } from './components/DeviceCard.jsx'
+import { INTEGRATION_ICONS, IconDevice, IconRefresh } from './components/icons.jsx'
 
-const MODULE_ICONS = {
-  tuya: '🪟',
-  ring: '🔔',
-  cameras: '📹',
+function greeting() {
+  const hour = new Date().getHours()
+  if (hour < 11) return 'Guten Morgen'
+  if (hour < 18) return 'Guten Tag'
+  return 'Guten Abend'
 }
 
-function statusText(mod) {
-  if (mod.ready) return 'Bereit'
-  if (mod.configured) return 'Konfiguriert, Integration folgt'
-  return 'Noch nicht eingerichtet'
-}
-
-async function api(path, options) {
-  const res = await fetch(path, options)
-  const data = await res.json().catch(() => ({}))
-  if (!res.ok) throw new Error(data.error ?? `HTTP ${res.status}`)
-  return data
-}
-
-function Cover({ device, onAction }) {
-  const [percent, setPercent] = useState(device.status.percent_control ?? 0)
-  const [busy, setBusy] = useState(false)
-
-  const send = useCallback(
-    async (fn) => {
-      setBusy(true)
-      try {
-        await fn()
-      } catch (err) {
-        alert(`Fehler bei „${device.name}": ${err.message}`)
-      } finally {
-        setBusy(false)
-      }
-    },
-    [device.name],
-  )
-
-  const move = (action) =>
-    send(() => api(`/api/tuya/covers/${device.id}/${action}`, { method: 'POST' }))
-
-  const moveTo = (value) =>
-    send(() =>
-      api(`/api/tuya/covers/${device.id}/position`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ percent: value }),
-      }),
-    )
-
-  return (
-    <div className={`cover ${device.online ? '' : 'offline'}`}>
-      <div className="cover-row">
-        <span className="cover-name">
-          {device.name}
-          {!device.online && <span className="offline-tag"> · offline</span>}
-        </span>
-        <div className="cover-buttons">
-          <button disabled={busy} onClick={() => move('open')} aria-label="Hochfahren">
-            ▲
-          </button>
-          <button disabled={busy} onClick={() => move('stop')} aria-label="Stopp">
-            ■
-          </button>
-          <button disabled={busy} onClick={() => move('close')} aria-label="Runterfahren">
-            ▼
-          </button>
-        </div>
-      </div>
-      <div className="cover-row">
-        <input
-          type="range"
-          min="0"
-          max="100"
-          value={percent}
-          disabled={busy}
-          onChange={(e) => setPercent(Number(e.target.value))}
-          onMouseUp={() => moveTo(percent)}
-          onTouchEnd={() => moveTo(percent)}
-        />
-        <span className="cover-percent">{percent} %</span>
-      </div>
-    </div>
-  )
-}
-
-function TuyaCard({ mod }) {
-  const [devices, setDevices] = useState(null)
-  const [error, setError] = useState(null)
-
-  useEffect(() => {
-    if (!mod.ready) return
-    api('/api/tuya/devices')
-      .then((data) => setDevices(data.devices.filter((d) => d.isCover)))
-      .catch((err) => setError(err.message))
-  }, [mod.ready])
-
-  return (
-    <section className="card">
-      <div className="card-header">
-        <span className="card-icon">{MODULE_ICONS.tuya}</span>
-        <h2>{mod.label}</h2>
-        <span className={`status-dot ${mod.ready ? 'ready' : 'pending'}`} />
-      </div>
-      {!mod.ready && <p className="card-status">{statusText(mod)}</p>}
-      {error && <p className="card-status error-text">{error}</p>}
-      {mod.ready && !devices && !error && <p className="card-status">Lade Rollläden…</p>}
-      {devices && (
-        <div className="cover-list">
-          {devices.map((d) => (
-            <Cover key={d.id} device={d} />
-          ))}
-        </div>
-      )}
-    </section>
-  )
-}
-
-function StubCard({ mod }) {
-  return (
-    <section className="card">
-      <div className="card-header">
-        <span className="card-icon">{MODULE_ICONS[mod.name] ?? '⚙️'}</span>
-        <h2>{mod.label}</h2>
-        <span className={`status-dot ${mod.ready ? 'ready' : 'pending'}`} />
-      </div>
-      <p className="card-status">{statusText(mod)}</p>
-    </section>
-  )
+// Geräte nach Raum gruppieren; Geräte ohne Raum zuletzt.
+function groupByRoom(devices) {
+  const groups = new Map()
+  for (const device of devices) {
+    const key = device.room ?? ''
+    if (!groups.has(key)) groups.set(key, [])
+    groups.get(key).push(device)
+  }
+  return [...groups.entries()]
+    .map(([room, list]) => ({ room: room || null, devices: list }))
+    .sort((a, b) => (a.room ?? '￿').localeCompare(b.room ?? '￿', 'de'))
 }
 
 export default function App() {
-  const [modules, setModules] = useState(null)
-  const [error, setError] = useState(null)
+  const [devices, setDevices] = useState([])
+  const [deviceErrors, setDeviceErrors] = useState([])
+  const [integrations, setIntegrations] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [fatal, setFatal] = useState(null)
+  const [bulkResult, setBulkResult] = useState(null)
+  const reloadTimer = useRef(null)
+
+  const load = useCallback(async (fresh = false) => {
+    try {
+      const [deviceData, integrationData] = await Promise.all([
+        fetchDevices(fresh),
+        fetchIntegrations(),
+      ])
+      setDevices(deviceData.devices)
+      setDeviceErrors(deviceData.errors)
+      setIntegrations(integrationData.integrations)
+      setFatal(null)
+    } catch (err) {
+      setFatal(err.message)
+    } finally {
+      setLoading(false)
+    }
+  }, [])
 
   useEffect(() => {
-    api('/api/status')
-      .then((data) => setModules(data.modules))
-      .catch(() => setError('Backend nicht erreichbar'))
-  }, [])
+    load()
+    return () => clearTimeout(reloadTimer.current)
+  }, [load])
+
+  // Nach einem Befehl den echten Zustand nachladen (Gerät meldet die neue
+  // Position erst nach kurzer Zeit an die Hersteller-Cloud).
+  const scheduleReload = useCallback(() => {
+    clearTimeout(reloadTimer.current)
+    reloadTimer.current = setTimeout(() => load(true), 1500)
+  }, [load])
+
+  const covers = devices.filter((d) => d.type === 'cover')
+  const favorites = devices.filter((d) => d.favorite)
+  const unconfigured = integrations.filter((i) => !i.configured)
+
+  const runBulk = async (command) => {
+    setBulkResult({ pending: true })
+    const targets = covers.filter((d) => d.capabilities.includes(command))
+    const results = await Promise.allSettled(targets.map((d) => sendCommand(d.id, command)))
+    const ok = results.filter((r) => r.status === 'fulfilled').length
+    setBulkResult({ ok, total: targets.length })
+    scheduleReload()
+  }
 
   return (
     <div className="app">
       <header>
-        <h1>SmartHome</h1>
-        <p className="subtitle">Kontrollzentrum</p>
+        <div>
+          <h1>{greeting()}</h1>
+          <p className="subtitle">SmartHome Kontrollzentrum</p>
+        </div>
+        <button className="icon-button" onClick={() => load(true)} aria-label="Aktualisieren">
+          <IconRefresh />
+        </button>
       </header>
 
-      {error && <div className="banner error">{error}</div>}
-      {!error && !modules && <div className="banner">Lade Status…</div>}
+      {fatal && <div className="banner banner-error">{fatal}</div>}
+      {loading && <div className="banner">Lade Geräte…</div>}
+      {deviceErrors.map((e) => (
+        <div key={e.integration} className="banner banner-error">
+          <strong>{e.label}:</strong> {e.error}
+        </div>
+      ))}
 
-      <main>
-        {modules?.map((mod) =>
-          mod.name === 'tuya' ? (
-            <TuyaCard key={mod.name} mod={mod} />
-          ) : (
-            <StubCard key={mod.name} mod={mod} />
-          ),
-        )}
-      </main>
+      {favorites.length > 0 && (
+        <section>
+          <h2 className="section-title">Favoriten</h2>
+          <div className="device-list">
+            {favorites.map((d) => (
+              <DeviceCard key={d.id} device={d} onCommandDone={scheduleReload} />
+            ))}
+          </div>
+        </section>
+      )}
+
+      {covers.length > 0 && (
+        <section>
+          <div className="section-head">
+            <h2 className="section-title">Rollläden</h2>
+            <div className="bulk-actions">
+              <button onClick={() => runBulk('open')}>Alle öffnen</button>
+              <button onClick={() => runBulk('close')}>Alle schließen</button>
+            </div>
+          </div>
+          {bulkResult && !bulkResult.pending && (
+            <p className={`bulk-result ${bulkResult.ok < bulkResult.total ? 'control-error' : ''}`}>
+              {bulkResult.ok} von {bulkResult.total} Rollläden angesteuert
+            </p>
+          )}
+          {groupByRoom(covers).map((group) => (
+            <div key={group.room ?? 'ohne-raum'}>
+              {group.room && <h3 className="room-title">{group.room}</h3>}
+              <div className="device-list">
+                {group.devices.map((d) => (
+                  <DeviceCard key={d.id} device={d} onCommandDone={scheduleReload} />
+                ))}
+              </div>
+            </div>
+          ))}
+        </section>
+      )}
+
+      {!loading && covers.length === 0 && deviceErrors.length === 0 && !fatal && (
+        <div className="banner">Keine Geräte gefunden.</div>
+      )}
+
+      {unconfigured.length > 0 && (
+        <section>
+          <h2 className="section-title">Einrichtung ausstehend</h2>
+          <div className="device-list">
+            {unconfigured.map((integration) => {
+              const IconForIntegration = INTEGRATION_ICONS[integration.name] ?? IconDevice
+              return (
+                <article key={integration.name} className="device device-pending">
+                  <div className="device-row">
+                    <span className="device-icon">
+                      <IconForIntegration />
+                    </span>
+                    <span className="device-name">{integration.label}</span>
+                    <span className="status-pill pill-pending">Konfiguration erforderlich</span>
+                  </div>
+                </article>
+              )
+            })}
+          </div>
+        </section>
+      )}
     </div>
   )
 }
