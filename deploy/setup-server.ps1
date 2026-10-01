@@ -83,10 +83,12 @@ if (-not (Test-Path $go2)) {
 }
 
 # --- Autostart-Dienst (Aufgabenplanung, Start als SYSTEM beim Hochfahren) ---
+# Hinweis: kein `schtasks ... 2>&1` — in PowerShell 5.1 würde die
+# Stderr-Umleitung eines nativen Befehls bei ErrorActionPreference=Stop
+# fälschlich abbrechen. Register-ScheduledTask -Force überschreibt ohnehin.
 Step 'Richte Autostart ein'
 $node = (Get-Command node).Source
-schtasks /Query /TN $TaskName >$null 2>&1
-if ($LASTEXITCODE -eq 0) { schtasks /Delete /TN $TaskName /F | Out-Null }
+Unregister-ScheduledTask -TaskName $TaskName -Confirm:$false -ErrorAction SilentlyContinue
 $action  = New-ScheduledTaskAction -Execute $node -Argument 'src\server.js' -WorkingDirectory "$InstallDir\backend"
 $trigger = New-ScheduledTaskTrigger -AtStartup
 $principal = New-ScheduledTaskPrincipal -UserId 'SYSTEM' -LogonType ServiceAccount -RunLevel Highest
