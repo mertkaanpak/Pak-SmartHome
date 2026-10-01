@@ -6,7 +6,9 @@ export function createRequireAuth(auth) {
   return (req, res, next) => {
     const user = auth.verifySession(req.cookies?.[SESSION_COOKIE])
     if (!user) {
-      return res.status(401).json({ error: 'Anmeldung erforderlich' })
+      // code AUTH_REQUIRED: nur DIESES 401 schickt das Frontend zurück zum
+      // Login — 401/4xx aus Integrationen (z. B. Ring) bleiben im Formular.
+      return res.status(401).json({ error: 'Anmeldung erforderlich', code: 'AUTH_REQUIRED' })
     }
     req.user = user
     next()

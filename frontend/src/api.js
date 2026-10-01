@@ -8,8 +8,9 @@ export async function api(path, options = {}) {
     throw new Error('Backend nicht erreichbar')
   }
   const data = await res.json().catch(() => ({}))
-  if (res.status === 401 && !path.startsWith('/api/auth/')) {
-    // Session abgelaufen: App zurück auf den Login-Bildschirm schicken
+  if (res.status === 401 && data.code === 'AUTH_REQUIRED') {
+    // Nur echte Session-Abläufe führen zurück zum Login — Fehler aus
+    // Integrationen (z. B. Ring-Anmeldung) bleiben im jeweiligen Formular.
     window.dispatchEvent(new Event('pak:unauthorized'))
   }
   if (!res.ok) throw new Error(data.error ?? `Fehler (HTTP ${res.status})`)

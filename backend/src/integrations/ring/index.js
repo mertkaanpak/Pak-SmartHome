@@ -139,8 +139,10 @@ export function createRingAdapter({ settings, events } = {}) {
         })
       }
       log.warn('Ring-Anmeldung fehlgeschlagen')
+      // Bewusst 400 statt 401: ein 401 würde das Frontend als abgelaufene
+      // App-Sitzung deuten und zum Login springen.
       throw new HttpError(
-        401,
+        400,
         code
           ? 'Der Bestätigungscode wurde nicht akzeptiert'
           : 'Ring-Anmeldung fehlgeschlagen — E-Mail und Passwort prüfen',
