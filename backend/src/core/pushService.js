@@ -33,21 +33,28 @@ export function createPushService({ db, settings, events }) {
   async function notify(payload) {
     const data = JSON.stringify(payload)
     const subs = selectAll.all()
+    let sent = 0
+    const errors = []
     await Promise.all(
       subs.map(async (row) => {
         const sub = JSON.parse(row.subscription)
         try {
           await webpush.sendNotification(sub, data)
+          sent += 1
         } catch (err) {
           // 404/410: Abo ist beim Push-Dienst abgelaufen -> entfernen
           if (err.statusCode === 404 || err.statusCode === 410) {
             remove.run(sub.endpoint)
-          } else {
-            log.warn('Push-Versand fehlgeschlagen', { status: err.statusCode })
           }
+          errors.push(err.statusCode ?? String(err.body ?? err.message ?? err))
+          log.warn('Push-Versand fehlgeschlagen', {
+            status: err.statusCode,
+            body: String(err.body ?? '').slice(0, 200),
+          })
         }
       }),
     )
+    return { total: subs.length, sent, failed: errors.length, errors }
   }
 
   // An den Event-Bus hängen: passende Ereignisse werden zu Push-Nachrichten

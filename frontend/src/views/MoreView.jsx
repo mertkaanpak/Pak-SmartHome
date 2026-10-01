@@ -66,8 +66,14 @@ export function MoreView() {
 
   const testPush = async () => {
     try {
-      await sendTestPush()
-      toast('Test-Benachrichtigung gesendet')
+      const r = await sendTestPush()
+      if (r.total === 0) {
+        toast('Kein Gerät registriert — Schalter aus/wieder an schalten', 'error')
+      } else if (r.sent > 0) {
+        toast(`An ${r.sent} Gerät(e) gesendet — sollte gleich erscheinen`)
+      } else {
+        toast(`Versand fehlgeschlagen (${r.errors?.[0] ?? 'Fehler'})`, 'error')
+      }
     } catch (err) {
       toast(err.message, 'error')
     }

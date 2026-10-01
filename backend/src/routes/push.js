@@ -29,15 +29,16 @@ export function createPushRouter(push) {
     res.json({ ok: true })
   })
 
-  // Testbenachrichtigung ("Probe-Push" aus der App)
+  // Testbenachrichtigung ("Probe-Push" aus der App) — liefert das echte
+  // Ergebnis zurück, damit man sieht, wo es ggf. hakt.
   router.post('/test', async (req, res) => {
-    await push.notify({
+    const result = await push.notify({
       title: 'Pak SmartHome',
       body: 'Test-Benachrichtigung — Push funktioniert ✓',
       url: '/',
       tag: 'test',
     })
-    res.json({ ok: true, subscriptions: push.count() })
+    res.json(result)
   })
 
   return router
