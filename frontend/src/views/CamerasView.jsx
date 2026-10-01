@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { CameraPlayer } from '../components/CameraPlayer.jsx'
-import { IconCamera } from '../components/icons.jsx'
+import { IconCamera, IconRefresh } from '../components/icons.jsx'
 import { useDevices } from '../state/DevicesContext.jsx'
 
 const STATUS_LABELS = {
@@ -16,7 +16,11 @@ export function CamerasView() {
   const { devices } = useDevices()
   const [activeId, setActiveId] = useState(null)
 
-  const cameras = (devices ?? []).filter((d) => d.type === 'camera')
+  // Alles mit Kamerabild: lokale Kameras (Live-Stream) und Ring-Geräte
+  // inklusive Türklingel (Standbild)
+  const cameras = (devices ?? []).filter(
+    (d) => d.type === 'camera' || d.capabilities.includes('snapshot'),
+  )
 
   return (
     <div className="view">
@@ -54,7 +58,9 @@ export function CamerasView() {
                 </span>
                 <span className={`pill ${status.pill}`}>{status.text}</span>
               </div>
-              {active ? (
+              {camera.integration === 'ring' ? (
+                <RingSnapshot camera={camera} />
+              ) : active ? (
                 <>
                   <CameraPlayer cameraId={camera.externalId} name={camera.name} />
                   <div className="camera-actions">
@@ -83,6 +89,44 @@ export function CamerasView() {
           )
         })}
       </div>
+    </div>
+  )
+}
+
+// Ring liefert (noch) Standbilder statt Live-Video — ehrlich beschriftet.
+// Das Bild wird erst auf Wunsch geladen; Batteriekameras brauchen etwas.
+function RingSnapshot({ camera }) {
+  const [loadedAt, setLoadedAt] = useState(null)
+  const [state, setState] = useState('idle') // idle | loading | ready | error
+
+  const load = () => {
+    setState('loading')
+    setLoadedAt(Date.now())
+  }
+
+  return (
+    <div>
+      {loadedAt && (
+        <div className="camera-player">
+          <img
+            className="camera-video"
+            src={`/api/integrations/ring/cameras/${camera.externalId}/snapshot?t=${loadedAt}`}
+            alt={`Standbild von ${camera.name}`}
+            onLoad={() => setState('ready')}
+            onError={() => setState('error')}
+          />
+          {state === 'loading' && <div className="camera-overlay">Hole Standbild…</div>}
+          {state === 'error' && (
+            <div className="camera-overlay camera-overlay-error">
+              Kein Standbild verfügbar — die Kamera ist evtl. im Energiesparmodus
+            </div>
+          )}
+        </div>
+      )}
+      <button className="camera-start" onClick={load} disabled={state === 'loading'}>
+        <IconRefresh size={17} />
+        {loadedAt ? 'Standbild aktualisieren' : 'Standbild anzeigen'}
+      </button>
     </div>
   )
 }

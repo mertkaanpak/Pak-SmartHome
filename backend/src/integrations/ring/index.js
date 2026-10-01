@@ -100,6 +100,7 @@ export function createRingAdapter({ settings, events } = {}) {
       lastSeen: null,
       capabilities: [
         Capability.MOTION,
+        Capability.SNAPSHOT,
         ...(isDoorbell ? [Capability.DOORBELL] : []),
         ...(Number.isFinite(battery) ? [Capability.BATTERY] : []),
       ],
@@ -107,7 +108,31 @@ export function createRingAdapter({ settings, events } = {}) {
     }
   }
 
+  async function getSnapshot(externalId) {
+    const ring = getApi()
+    if (!ring) throw new IntegrationError('Ring nicht verbunden')
+    const cameras = await withTimeout(
+      ring.getCameras(),
+      REQUEST_TIMEOUT_MS,
+      'Ring antwortet nicht (Zeitüberschreitung)',
+    )
+    const camera = cameras.find((c) => String(c.id) === externalId)
+    if (!camera) throw new HttpError(404, 'Ring-Kamera nicht gefunden')
+    // Batteriekameras brauchen fürs Aufwachen gern ein paar Sekunden
+    return withTimeout(
+      camera.getSnapshot(),
+      25_000,
+      'Die Kamera liefert gerade kein Standbild (evtl. im Energiesparmodus)',
+    )
+  }
+
   const router = Router()
+
+  // Aktuelles Standbild einer Ring-Kamera (JPEG)
+  router.get('/cameras/:id/snapshot', async (req, res) => {
+    const image = await getSnapshot(req.params.id)
+    res.set('Cache-Control', 'no-store').type('image/jpeg').send(image)
+  })
 
   // Anmeldung aus der App: Schritt 1 E-Mail/Passwort, Schritt 2 ggf. 2FA-Code
   router.post('/auth', validateBody(authSchema), async (req, res) => {
