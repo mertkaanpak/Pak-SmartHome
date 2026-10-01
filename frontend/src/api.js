@@ -12,8 +12,8 @@ export async function api(path, options = {}) {
   return data
 }
 
-const jsonPost = (body) => ({
-  method: 'POST',
+const json = (method, body) => ({
+  method,
   headers: { 'Content-Type': 'application/json' },
   body: JSON.stringify(body),
 })
@@ -22,8 +22,13 @@ export const fetchDevices = (fresh = false) => api(`/api/devices${fresh ? '?fres
 
 export const fetchIntegrations = () => api('/api/integrations')
 
+export const fetchHealth = () => api('/api/system/health')
+
 export const sendCommand = (deviceId, command, params) =>
   api(
     `/api/devices/${encodeURIComponent(deviceId)}/commands`,
-    jsonPost(params ? { command, params } : { command }),
+    json('POST', params ? { command, params } : { command }),
   )
+
+export const updateDeviceMeta = (deviceId, patch) =>
+  api(`/api/devices/${encodeURIComponent(deviceId)}`, json('PATCH', patch))

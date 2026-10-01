@@ -1,0 +1,138 @@
+/* ============================================================
+   Design-Tokens — einzige Quelle für Farben, Abstände, Radien,
+   Typografie und Motion. Komponenten verwenden ausschließlich
+   diese Variablen, keine losen Hex-Werte.
+   Light ist der Default; Dark kommt über die Systemeinstellung
+   oder explizit über <html data-theme="dark">.
+   ============================================================ */
+
+:root {
+  color-scheme: light dark;
+
+  /* Flächen */
+  --bg: #f3f4f7;
+  --bg-nav: rgba(248, 249, 251, 0.88);
+  --surface: #ffffff;
+  --surface-2: #eef0f4;
+  --surface-pressed: #e6e9ef;
+  --border: #e2e5eb;
+  --border-strong: #d2d6df;
+
+  /* Text */
+  --text: #17191f;
+  --text-secondary: #585f6e;
+  --text-muted: #8b91a0;
+  --text-on-accent: #ffffff;
+
+  /* Semantik */
+  --accent: #2f63c7;
+  --accent-soft: rgba(47, 99, 199, 0.1);
+  --ok: #1f9e55;
+  --ok-soft: rgba(31, 158, 85, 0.12);
+  --warn: #b2770f;
+  --warn-soft: rgba(178, 119, 15, 0.12);
+  --danger: #c23d3d;
+  --danger-soft: rgba(194, 61, 61, 0.1);
+
+  /* Rollladen-Visualisierung */
+  --visual-glass: linear-gradient(180deg, #dfe7f2 0%, #cdd8e8 100%);
+  --visual-slat: #aeb7c6;
+  --visual-slat-gap: #c4ccd9;
+
+  /* Geometrie */
+  --radius-s: 10px;
+  --radius-m: 16px;
+  --radius-l: 22px;
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.5rem;
+  --space-6: 2rem;
+
+  --shadow-card: 0 1px 2px rgba(20, 24, 33, 0.05);
+  --shadow-sheet: 0 -8px 40px rgba(20, 24, 33, 0.18);
+
+  /* Typografie */
+  --font: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+  --fs-title: 1.65rem;
+  --fs-section: 1rem;
+  --fs-body: 0.95rem;
+  --fs-small: 0.85rem;
+  --fs-micro: 0.74rem;
+
+  /* Motion */
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-sheet: cubic-bezier(0.32, 0.72, 0, 1);
+  --dur-fast: 140ms;
+  --dur-med: 280ms;
+  --dur-slow: 600ms;
+
+  /* Layout */
+  --nav-height: calc(60px + env(safe-area-inset-bottom));
+  --content-max: 560px;
+}
+
+/* Dunkles Theme: bewusst gestaltet — fast schwarzer Grund, leicht
+   erhöhte Flächen, zurückhaltende Borders, kein reines #000. */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) {
+    --bg: #0b0d11;
+    --bg-nav: rgba(13, 15, 20, 0.88);
+    --surface: #151922;
+    --surface-2: #1c212d;
+    --surface-pressed: #232a39;
+    --border: rgba(255, 255, 255, 0.07);
+    --border-strong: rgba(255, 255, 255, 0.13);
+
+    --text: #eef0f5;
+    --text-secondary: #a3abbd;
+    --text-muted: #677083;
+
+    --accent: #5f8ee5;
+    --accent-soft: rgba(95, 142, 229, 0.14);
+    --ok: #3dbd72;
+    --ok-soft: rgba(61, 189, 114, 0.14);
+    --warn: #d9a63f;
+    --warn-soft: rgba(217, 166, 63, 0.13);
+    --danger: #d96a6a;
+    --danger-soft: rgba(217, 106, 106, 0.13);
+
+    --visual-glass: linear-gradient(180deg, #1d2634 0%, #16202e 100%);
+    --visual-slat: #3a4354;
+    --visual-slat-gap: #2b3342;
+
+    --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.25);
+    --shadow-sheet: 0 -8px 40px rgba(0, 0, 0, 0.5);
+  }
+}
+
+:root[data-theme='dark'] {
+  --bg: #0b0d11;
+  --bg-nav: rgba(13, 15, 20, 0.88);
+  --surface: #151922;
+  --surface-2: #1c212d;
+  --surface-pressed: #232a39;
+  --border: rgba(255, 255, 255, 0.07);
+  --border-strong: rgba(255, 255, 255, 0.13);
+
+  --text: #eef0f5;
+  --text-secondary: #a3abbd;
+  --text-muted: #677083;
+
+  --accent: #5f8ee5;
+  --accent-soft: rgba(95, 142, 229, 0.14);
+  --ok: #3dbd72;
+  --ok-soft: rgba(61, 189, 114, 0.14);
+  --warn: #d9a63f;
+  --warn-soft: rgba(217, 166, 63, 0.13);
+  --danger: #d96a6a;
+  --danger-soft: rgba(217, 106, 106, 0.13);
+
+  --visual-glass: linear-gradient(180deg, #1d2634 0%, #16202e 100%);
+  --visual-slat: #3a4354;
+  --visual-slat-gap: #2b3342;
+
+  --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.25);
+  --shadow-sheet: 0 -8px 40px rgba(0, 0, 0, 0.5);
+}

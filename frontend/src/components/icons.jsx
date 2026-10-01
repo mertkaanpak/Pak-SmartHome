@@ -1,5 +1,4 @@
-// Konsistente SVG-Icons (statt Emojis) — Strichstärke und Stil einheitlich,
-// Farbe erbt vom Text (currentColor).
+// Konsistente SVG-Icons — einheitliche Strichstärke, Farbe erbt vom Text.
 function Icon({ children, size = 22, ...props }) {
   return (
     <svg
@@ -19,6 +18,43 @@ function Icon({ children, size = 22, ...props }) {
   )
 }
 
+export const IconHome = (props) => (
+  <Icon {...props}>
+    <path d="M4 10.5 12 4l8 6.5" />
+    <path d="M6 9.5V20h12V9.5" />
+  </Icon>
+)
+
+export const IconRooms = (props) => (
+  <Icon {...props}>
+    <rect x="4" y="4" width="7" height="7" rx="1.5" />
+    <rect x="13" y="4" width="7" height="7" rx="1.5" />
+    <rect x="4" y="13" width="7" height="7" rx="1.5" />
+    <rect x="13" y="13" width="7" height="7" rx="1.5" />
+  </Icon>
+)
+
+export const IconCamera = (props) => (
+  <Icon {...props}>
+    <rect x="3" y="7" width="13" height="10" rx="2" />
+    <path d="M16 11l5-3v8l-5-3" />
+  </Icon>
+)
+
+export const IconScenes = (props) => (
+  <Icon {...props}>
+    <path d="M12 3v3M12 18v3M3 12h3M18 12h3M5.6 5.6l2.1 2.1M16.3 16.3l2.1 2.1M18.4 5.6l-2.1 2.1M7.7 16.3l-2.1 2.1" />
+  </Icon>
+)
+
+export const IconMore = (props) => (
+  <Icon {...props}>
+    <circle cx="5" cy="12" r="1.3" fill="currentColor" stroke="none" />
+    <circle cx="12" cy="12" r="1.3" fill="currentColor" stroke="none" />
+    <circle cx="19" cy="12" r="1.3" fill="currentColor" stroke="none" />
+  </Icon>
+)
+
 export const IconBlinds = (props) => (
   <Icon {...props}>
     <rect x="4" y="3" width="16" height="18" rx="2" />
@@ -35,10 +71,11 @@ export const IconBell = (props) => (
   </Icon>
 )
 
-export const IconCamera = (props) => (
+export const IconDevice = (props) => (
   <Icon {...props}>
-    <rect x="3" y="7" width="13" height="10" rx="2" />
-    <path d="M16 11l5-3v8l-5-3" />
+    <rect x="5" y="4" width="14" height="16" rx="2" />
+    <circle cx="12" cy="15" r="2" />
+    <line x1="9" y1="8" x2="15" y2="8" />
   </Icon>
 )
 
@@ -56,15 +93,25 @@ export const IconDown = (props) => (
 
 export const IconStop = (props) => (
   <Icon {...props}>
-    <rect x="7" y="7" width="10" height="10" rx="1.5" fill="currentColor" stroke="none" />
+    <rect x="7.5" y="7.5" width="9" height="9" rx="1.5" fill="currentColor" stroke="none" />
   </Icon>
 )
 
-export const IconDevice = (props) => (
+export const IconStar = ({ filled, ...props }) => (
+  <Icon {...props} fill={filled ? 'currentColor' : 'none'}>
+    <path d="M12 3.6l2.5 5.1 5.6.8-4 4 1 5.6-5.1-2.7-5.1 2.7 1-5.6-4-4 5.6-.8z" />
+  </Icon>
+)
+
+export const IconClose = (props) => (
   <Icon {...props}>
-    <rect x="5" y="4" width="14" height="16" rx="2" />
-    <circle cx="12" cy="15" r="2" />
-    <line x1="9" y1="8" x2="15" y2="8" />
+    <path d="M6 6l12 12M18 6L6 18" />
+  </Icon>
+)
+
+export const IconChevronRight = (props) => (
+  <Icon {...props}>
+    <polyline points="9 6 15 12 9 18" />
   </Icon>
 )
 
@@ -75,15 +122,23 @@ export const IconRefresh = (props) => (
   </Icon>
 )
 
-export const INTEGRATION_ICONS = {
-  tuya: IconBlinds,
-  ring: IconBell,
-  onvif: IconCamera,
-}
+export const IconAlert = (props) => (
+  <Icon {...props}>
+    <path d="M12 4 2.8 19.5h18.4z" />
+    <line x1="12" y1="10" x2="12" y2="14" />
+    <circle cx="12" cy="17" r="0.4" fill="currentColor" stroke="none" />
+  </Icon>
+)
 
 export const TYPE_ICONS = {
   cover: IconBlinds,
   doorbell: IconBell,
   camera: IconCamera,
   unknown: IconDevice,
+}
+
+export const INTEGRATION_ICONS = {
+  tuya: IconBlinds,
+  ring: IconBell,
+  onvif: IconCamera,
 }

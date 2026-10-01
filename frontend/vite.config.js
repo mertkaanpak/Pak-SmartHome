@@ -8,13 +8,13 @@ export default defineConfig({
     VitePWA({
       registerType: 'autoUpdate',
       manifest: {
-        name: 'SmartHome Kontrollzentrum',
+        name: 'Pak SmartHome',
         short_name: 'SmartHome',
         description: 'Zentrale Steuerung für Rollläden, Türklingel und Kameras',
         lang: 'de',
         display: 'standalone',
-        background_color: '#0f1115',
-        theme_color: '#0f1115',
+        background_color: '#0b0d11',
+        theme_color: '#0b0d11',
         icons: [
           {
             src: 'icon.svg',

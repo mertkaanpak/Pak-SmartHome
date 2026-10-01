@@ -1,51 +1,59 @@
-import { useState } from 'react'
-import { sendCommand } from '../api.js'
+import { useEffect, useState } from 'react'
+import { useDevices } from '../state/DevicesContext.jsx'
 import { IconDown, IconStop, IconUp } from './icons.jsx'
 
 // Bedienelemente für Geräte mit open/close/stop(/position).
-// Ein Befehl gilt erst als erfolgreich, wenn das Backend bestätigt hat
-// (kein Optimistic UI bei physischen Geräten).
-export function CoverControls({ device, onCommandDone }) {
-  const [busy, setBusy] = useState(false)
-  const [error, setError] = useState(null)
+// Ein Befehl gilt erst als erfolgreich, wenn das Backend bestätigt hat —
+// bis dahin zeigt die Zeile „Befehl wird ausgeführt…".
+export function CoverControls({ device, withSlider = true }) {
+  const { command, pendingById } = useDevices()
+  const busy = Boolean(pendingById[device.id])
   const [percent, setPercent] = useState(device.state.position ?? 0)
 
-  const run = async (command, params) => {
-    setBusy(true)
-    setError(null)
-    try {
-      await sendCommand(device.id, command, params)
-      onCommandDone?.()
-    } catch (err) {
-      setError(err.message)
-    } finally {
-      setBusy(false)
-    }
-  }
+  // Position vom Gerät übernehmen, solange der Nutzer nicht gerade zieht
+  useEffect(() => {
+    if (!busy && device.state.position != null) setPercent(device.state.position)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [device.state.position])
 
   const can = (capability) => device.capabilities.includes(capability)
 
   return (
-    <div className="cover-controls">
-      <div className="cover-buttons">
+    <div className="cover-controls" style={{ display: 'grid', gap: 'var(--space-2)' }}>
+      <div className="cover-actions">
         {can('open') && (
-          <button disabled={busy} onClick={() => run('open')} aria-label={`${device.name} hochfahren`}>
+          <button
+            className="control-btn"
+            disabled={busy}
+            onClick={() => command(device, 'open')}
+            aria-label={`${device.name} hochfahren`}
+          >
             <IconUp />
           </button>
         )}
         {can('stop') && (
-          <button disabled={busy} onClick={() => run('stop')} aria-label={`${device.name} stoppen`}>
+          <button
+            className="control-btn"
+            disabled={busy}
+            onClick={() => command(device, 'stop')}
+            aria-label={`${device.name} stoppen`}
+          >
             <IconStop size={18} />
           </button>
         )}
         {can('close') && (
-          <button disabled={busy} onClick={() => run('close')} aria-label={`${device.name} runterfahren`}>
+          <button
+            className="control-btn"
+            disabled={busy}
+            onClick={() => command(device, 'close')}
+            aria-label={`${device.name} runterfahren`}
+          >
             <IconDown />
           </button>
         )}
       </div>
-      {can('position') && (
-        <div className="cover-position">
+      {withSlider && can('position') && (
+        <div className="slider-row">
           <input
             type="range"
             min="0"
@@ -54,14 +62,13 @@ export function CoverControls({ device, onCommandDone }) {
             disabled={busy}
             aria-label={`${device.name} Zielposition`}
             onChange={(e) => setPercent(Number(e.target.value))}
-            onMouseUp={() => run('setPosition', { percent })}
-            onTouchEnd={() => run('setPosition', { percent })}
+            onMouseUp={() => command(device, 'setPosition', { percent })}
+            onTouchEnd={() => command(device, 'setPosition', { percent })}
           />
-          <span className="cover-percent">{percent} %</span>
+          <span className="slider-value">{percent} %</span>
         </div>
       )}
-      {busy && <p className="control-hint">Sende Befehl…</p>}
-      {error && <p className="control-error">{error}</p>}
+      {busy && <p className="command-state">Befehl wird ausgeführt…</p>}
     </div>
   )
 }

@@ -1,4 +1,5 @@
 import { CoverControls } from './CoverControls.jsx'
+import { CoverVisual } from './CoverVisual.jsx'
 import { TYPE_ICONS } from './icons.jsx'
 
 const STATUS_LABELS = {
@@ -9,27 +10,54 @@ const STATUS_LABELS = {
   CONNECTING: 'Verbinde…',
 }
 
-// Herstellerneutrale Gerätekarte: rendert Bedienelemente allein anhand
-// der Capabilities. Welche Integration dahintersteckt, ist hier egal.
-export function DeviceCard({ device, onCommandDone }) {
-  const IconForType = TYPE_ICONS[device.type] ?? TYPE_ICONS.unknown
+const STATUS_PILL = {
+  ONLINE: 'pill-ok',
+  OFFLINE: 'pill-danger',
+  UNKNOWN: 'pill-muted',
+  ERROR: 'pill-danger',
+  CONNECTING: 'pill-muted',
+}
+
+// Herstellerneutrale Gerätekarte. Tipp auf die Karte öffnet die
+// Detailansicht; die Schnellbedienung liegt direkt auf der Karte.
+export function DeviceCard({ device, onOpen, index = 0, showRoom = true }) {
   const offline = device.status !== 'ONLINE'
-  const hasCoverControls = ['open', 'close', 'stop'].some((c) =>
-    device.capabilities.includes(c),
-  )
+  const isCover = device.type === 'cover'
+  const IconForType = TYPE_ICONS[device.type] ?? TYPE_ICONS.unknown
+
+  const meta = [
+    showRoom ? device.room : null,
+    isCover && device.state.position != null ? `${device.state.position} %` : null,
+  ]
+    .filter(Boolean)
+    .join(' · ')
 
   return (
-    <article className={`device ${offline ? 'device-offline' : ''}`}>
-      <div className="device-row">
-        <span className="device-icon">
-          <IconForType />
+    <article
+      className={`card device-card ${offline ? 'device-card-offline' : ''}`}
+      style={{ '--i': index }}
+    >
+      <button
+        className="device-card-main"
+        onClick={() => onOpen?.(device)}
+        aria-label={`${device.name}, Details öffnen`}
+      >
+        {isCover ? (
+          <CoverVisual position={device.state.position} />
+        ) : (
+          <span className="device-icon" style={{ color: 'var(--accent)' }}>
+            <IconForType />
+          </span>
+        )}
+        <span className="device-card-info">
+          <span className="device-card-name">{device.name}</span>
+          <span className="device-card-meta">{meta || '—'}</span>
         </span>
-        <span className="device-name">{device.name}</span>
-        <span className={`status-pill ${offline ? 'pill-off' : 'pill-on'}`}>
+        <span className={`pill ${STATUS_PILL[device.status] ?? 'pill-muted'}`}>
           {STATUS_LABELS[device.status] ?? device.status}
         </span>
-      </div>
-      {hasCoverControls && <CoverControls device={device} onCommandDone={onCommandDone} />}
+      </button>
+      {isCover && <CoverControls device={device} withSlider={false} />}
     </article>
   )
 }
