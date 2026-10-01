@@ -127,6 +127,19 @@ const migrations = [
       `)
     },
   },
+  {
+    version: 6,
+    name: 'Push-Abonnements',
+    up(db) {
+      db.exec(`
+        CREATE TABLE push_subscriptions (
+          endpoint     TEXT PRIMARY KEY,            -- eindeutige Browser-/Geräte-Adresse
+          subscription TEXT NOT NULL,               -- vollständiges Abo als JSON
+          created_at   INTEGER NOT NULL
+        );
+      `)
+    },
+  },
 ]
 
 export function openDb(file = config.dbFile) {

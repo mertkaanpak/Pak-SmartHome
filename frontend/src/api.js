@@ -112,6 +112,12 @@ export const deleteAutomation = (id) => api(`/api/automations/${id}`, { method: 
 
 export const runAutomation = (id) => api(`/api/automations/${id}/run`, { method: 'POST' })
 
+export const fetchVapidKey = () => api('/api/push/key')
+export const savePushSubscription = (sub) => api('/api/push/subscribe', json('POST', sub))
+export const removePushSubscription = (endpoint) =>
+  api('/api/push/unsubscribe', json('POST', { endpoint }))
+export const sendTestPush = () => api('/api/push/test', { method: 'POST' })
+
 export const fetchAuthStatus = () => api('/api/auth/status')
 
 export const authLogin = (username, password) =>

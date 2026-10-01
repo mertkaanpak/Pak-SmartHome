@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { fetchHealth, fetchIntegrations } from '../api.js'
+import { fetchHealth, fetchIntegrations, sendTestPush } from '../api.js'
 import {
+  IconBell,
   IconBolt,
   IconChevronRight,
   IconClock,
@@ -9,6 +10,13 @@ import {
   IconRefresh,
 } from '../components/icons.jsx'
 import { getTheme, setTheme } from '../lib/theme.js'
+import { useToast } from '../components/Toast.jsx'
+import {
+  disablePush,
+  enablePush,
+  getPushState,
+  isIosSafariNonStandalone,
+} from '../lib/push.js'
 import { useAuth } from '../state/AuthContext.jsx'
 
 const HEALTH_LABELS = {
@@ -27,7 +35,43 @@ const THEME_OPTIONS = [
 // Darstellung (Theme) und App-Informationen.
 export function MoreView() {
   const { user, logout } = useAuth()
+  const toast = useToast()
+  const [pushState, setPushState] = useState('loading') // loading|on|off|denied|unsupported
+  const [pushBusy, setPushBusy] = useState(false)
   const [health, setHealth] = useState(null)
+
+  useEffect(() => {
+    getPushState().then(setPushState)
+  }, [])
+
+  const togglePush = async () => {
+    setPushBusy(true)
+    try {
+      if (pushState === 'on') {
+        await disablePush()
+        setPushState('off')
+        toast('Benachrichtigungen aus')
+      } else {
+        await enablePush()
+        setPushState('on')
+        toast('Benachrichtigungen aktiviert')
+      }
+    } catch (err) {
+      toast(err.message, 'error')
+      setPushState(await getPushState())
+    } finally {
+      setPushBusy(false)
+    }
+  }
+
+  const testPush = async () => {
+    try {
+      await sendTestPush()
+      toast('Test-Benachrichtigung gesendet')
+    } catch (err) {
+      toast(err.message, 'error')
+    }
+  }
   const [integrations, setIntegrations] = useState(null)
   const [error, setError] = useState(null)
   const [theme, setThemeState] = useState(getTheme())
@@ -62,6 +106,54 @@ export function MoreView() {
       </header>
 
       {error && <div className="card banner banner-error">{error}</div>}
+
+      <section className="section">
+        <h2 className="section-title">Benachrichtigungen</h2>
+        <div className="card status-list">
+          <div className="status-row">
+            <span className="timeline-icon">
+              <IconBell size={18} />
+            </span>
+            <span className="status-row-label">
+              Push aufs Handy
+              <span className="status-row-sub">
+                {pushState === 'on'
+                  ? 'Aktiv — Klingeln & Bewegung von Ring'
+                  : pushState === 'denied'
+                    ? 'Im Browser/Gerät blockiert — in den Einstellungen erlauben'
+                    : pushState === 'unsupported'
+                      ? 'Auf diesem Gerät nicht verfügbar'
+                      : 'Klingeln und Bewegung sofort erhalten'}
+              </span>
+            </span>
+            {(pushState === 'on' || pushState === 'off') && (
+              <button
+                className={`switch ${pushState === 'on' ? 'on' : ''}`}
+                role="switch"
+                aria-checked={pushState === 'on'}
+                aria-label="Benachrichtigungen umschalten"
+                disabled={pushBusy}
+                onClick={togglePush}
+              />
+            )}
+          </div>
+          {pushState === 'on' && (
+            <button className="status-row status-row-link" onClick={testPush}>
+              <span className="timeline-icon">
+                <IconRefresh size={18} />
+              </span>
+              <span className="status-row-label">Test-Benachrichtigung senden</span>
+              <IconChevronRight size={17} />
+            </button>
+          )}
+        </div>
+        {isIosSafariNonStandalone() && pushState !== 'unsupported' && (
+          <p className="sheet-meta">
+            iPhone: Benachrichtigungen funktionieren nur, wenn die App über das
+            Teilen-Symbol zum Home-Bildschirm hinzugefügt und von dort geöffnet wird.
+          </p>
+        )}
+      </section>
 
       <section className="section">
         <h2 className="section-title">Systemstatus</h2>

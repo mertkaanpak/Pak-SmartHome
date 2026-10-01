@@ -15,6 +15,8 @@ import { createSecrets } from './core/secrets.js'
 import { createSettingsService } from './core/settingsService.js'
 import { createGateway } from './core/gateway.js'
 import { createCamerasRouter } from './routes/cameras.js'
+import { createPushService } from './core/pushService.js'
+import { createPushRouter } from './routes/push.js'
 import { createAutomationService } from './core/automationService.js'
 import { createAutomationsRouter } from './routes/automations.js'
 import { createAuthRouter } from './routes/auth.js'
@@ -49,6 +51,7 @@ const gateway = createGateway({
 const adapters = createAdapters({ settings, events, gateway })
 const deviceService = createDeviceService({ db, adapters, events })
 const scenes = createSceneService({ db, deviceService, events, audit })
+const push = createPushService({ db, settings, events })
 const automations = createAutomationService({
   db,
   scenes,
@@ -64,6 +67,7 @@ app.use('/api/devices', requireAuth, createDevicesRouter(deviceService, audit, e
 app.use('/api/events', requireAuth, createEventsRouter(events))
 app.use('/api/scenes', requireAuth, createScenesRouter(scenes))
 app.use('/api/automations', requireAuth, createAutomationsRouter(automations))
+app.use('/api/push', requireAuth, createPushRouter(push))
 app.use('/api/integrations', requireAuth, createIntegrationsRouter(adapters))
 app.use(
   '/api/cameras',

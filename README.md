@@ -89,7 +89,8 @@ in `backend/.env` (nicht im Git) — niemals im Frontend oder in Logs.
 | 9 | Events & Timeline (SSE-Live-Updates, Tagesgruppierung, Filter) | ✅ |
 | 10 | Szenen (Editor, Vorlagen, Teilerfolgs-Ergebnis) | ✅ |
 | 12 | Automationen (Uhrzeit/Sonnenauf-/-untergang ± Offset, Wochentage → Szene; Verwaltung komplett in der App) | ✅ |
-| 11, 13–16 | Push, WireGuard, Health-Feinschliff, Docker, UI-Feinschliff | ⬜ |
+| 11 | Push-Benachrichtigungen (Web-Push/PWA: Klingeln & Bewegung) | ✅ |
+| 13–16 | WireGuard, Health-Feinschliff, Docker, UI-Feinschliff | ⬜ |
 
 ## Media-Gateway (Kamera-Streams)
 

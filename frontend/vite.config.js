@@ -6,14 +6,14 @@ export default defineConfig({
   plugins: [
     react(),
     VitePWA({
+      // Eigener Service Worker (src/sw.js) — nötig für Web-Push-Handler.
+      // vite-plugin-pwa spritzt die Precache-Liste in unseren SW ein.
+      strategies: 'injectManifest',
+      srcDir: 'src',
+      filename: 'sw.js',
       registerType: 'autoUpdate',
-      workbox: {
-        // Neue Versionen sofort aktivieren und offene Tabs übernehmen —
-        // sonst klebt die PWA nach einem Update an der alten Fassung
-        skipWaiting: true,
-        clientsClaim: true,
-        // API-Aufrufe nie vom Service Worker beantworten lassen
-        navigateFallbackDenylist: [/^\/api\//],
+      injectManifest: {
+        globPatterns: ['**/*.{js,css,html,svg,webmanifest}'],
       },
       manifest: {
         name: 'Pak SmartHome',
