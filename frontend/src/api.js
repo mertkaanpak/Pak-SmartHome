@@ -8,6 +8,10 @@ export async function api(path, options = {}) {
     throw new Error('Backend nicht erreichbar')
   }
   const data = await res.json().catch(() => ({}))
+  if (res.status === 401 && !path.startsWith('/api/auth/')) {
+    // Session abgelaufen: App zurück auf den Login-Bildschirm schicken
+    window.dispatchEvent(new Event('pak:unauthorized'))
+  }
   if (!res.ok) throw new Error(data.error ?? `Fehler (HTTP ${res.status})`)
   return data
 }
@@ -32,3 +36,13 @@ export const sendCommand = (deviceId, command, params) =>
 
 export const updateDeviceMeta = (deviceId, patch) =>
   api(`/api/devices/${encodeURIComponent(deviceId)}`, json('PATCH', patch))
+
+export const fetchAuthStatus = () => api('/api/auth/status')
+
+export const authLogin = (username, password) =>
+  api('/api/auth/login', json('POST', { username, password }))
+
+export const authSetup = (username, password) =>
+  api('/api/auth/setup', json('POST', { username, password }))
+
+export const authLogout = () => api('/api/auth/logout', { method: 'POST' })

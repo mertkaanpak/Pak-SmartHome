@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { fetchHealth, fetchIntegrations } from '../api.js'
 import { IconRefresh } from '../components/icons.jsx'
 import { getTheme, setTheme } from '../lib/theme.js'
+import { useAuth } from '../state/AuthContext.jsx'
 
 const HEALTH_LABELS = {
   connected: { text: 'Verbunden', pill: 'pill-ok' },
@@ -18,6 +19,7 @@ const THEME_OPTIONS = [
 // „Mehr": echter Systemstatus (Backend, Datenbank, Integrationen),
 // Darstellung (Theme) und App-Informationen.
 export function MoreView() {
+  const { user, logout } = useAuth()
   const [health, setHealth] = useState(null)
   const [integrations, setIntegrations] = useState(null)
   const [error, setError] = useState(null)
@@ -104,6 +106,23 @@ export function MoreView() {
               {option.label}
             </button>
           ))}
+        </div>
+      </section>
+
+      <section className="section">
+        <h2 className="section-title">Konto</h2>
+        <div className="card status-list">
+          <div className="status-row">
+            <span className="status-row-label">
+              {user?.username}
+              <span className="status-row-sub">
+                {user?.role === 'admin' ? 'Administrator' : 'Benutzer'}
+              </span>
+            </span>
+            <button className="chip" onClick={logout}>
+              Abmelden
+            </button>
+          </div>
         </div>
       </section>
 

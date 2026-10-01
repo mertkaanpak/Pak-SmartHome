@@ -20,7 +20,7 @@ const metaSchema = z
   })
   .strict()
 
-export function createDevicesRouter(deviceService) {
+export function createDevicesRouter(deviceService, audit) {
   const router = Router()
 
   // Einheitliche Geräteliste über alle Integrationen.
@@ -37,12 +37,15 @@ export function createDevicesRouter(deviceService) {
   router.post('/:id/commands', validateBody(commandSchema), async (req, res) => {
     const { command, params } = req.body
     await deviceService.executeCommand(req.params.id, command, params)
+    audit?.(req.user?.username, 'device.command', { device: req.params.id, command, params })
     res.json({ ok: true })
   })
 
   // Benutzer-Metadaten: Raum, Favorit, eigener Name
   router.patch('/:id', validateBody(metaSchema), async (req, res) => {
-    res.json(await deviceService.updateMeta(req.params.id, req.body))
+    const updated = await deviceService.updateMeta(req.params.id, req.body)
+    audit?.(req.user?.username, 'device.meta_changed', { device: req.params.id, patch: req.body })
+    res.json(updated)
   })
 
   return router

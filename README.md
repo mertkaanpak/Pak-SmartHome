@@ -80,7 +80,7 @@ in `backend/.env` (nicht im Git) — niemals im Frontend oder in Logs.
 | --- | --- | --- |
 | 1 | Analyse & Stabilisierung (Fehlerbehandlung, Logging, Validierung, Tests) | ✅ |
 | 2 | Geräteabstraktion & Adapter-Architektur | ✅ |
-| 3 | Benutzer, Auth, Security | ⬜ |
+| 3 | Benutzer, Auth, Security (Argon2id, Sessions, Rate-Limit, Audit-Log) | ✅ |
 | 4 | Tuya real steuern | ✅ funktionierte im Juli — **Tuya-IoT-Core-Abo abgelaufen, im Tuya-Portal kostenlos verlängern** |
 | 5 | Ring | ⬜ benötigt Refresh-Token |
 | 6 | ONVIF/RTSP-Kamerastreaming | ⬜ benötigt Kameramodell |

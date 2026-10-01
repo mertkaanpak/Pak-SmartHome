@@ -739,6 +739,73 @@ input {
   }
 }
 
+/* ============ Anmeldung / Ersteinrichtung ============ */
+.auth-screen {
+  min-height: 100dvh;
+  display: grid;
+  place-items: center;
+  padding: var(--space-5) var(--space-4);
+}
+
+.auth-card {
+  width: min(100%, 380px);
+  padding: var(--space-6) var(--space-5);
+  display: grid;
+  animation: view-in var(--dur-med) var(--ease-out) backwards;
+}
+
+.auth-mark {
+  margin-bottom: var(--space-4);
+}
+
+.auth-title {
+  font-size: 1.45rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+.auth-sub {
+  color: var(--text-secondary);
+  font-size: var(--fs-small);
+  margin: var(--space-1) 0 var(--space-5);
+}
+
+.auth-label {
+  font-size: var(--fs-micro);
+  font-weight: 650;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  margin-bottom: var(--space-1);
+}
+
+.auth-input {
+  height: 48px;
+  border-radius: var(--radius-s);
+  border: 1px solid var(--border-strong);
+  background: var(--surface-2);
+  color: var(--text);
+  padding: 0 var(--space-3);
+  font-size: var(--fs-body);
+  margin-bottom: var(--space-4);
+}
+
+.auth-input:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 0;
+  border-color: var(--accent);
+}
+
+.auth-error {
+  color: var(--danger);
+  font-size: var(--fs-small);
+  margin-bottom: var(--space-3);
+}
+
+.auth-submit {
+  margin-top: var(--space-1);
+}
+
 /* ============ Mehr / Status-Listen ============ */
 .status-list {
   display: grid;

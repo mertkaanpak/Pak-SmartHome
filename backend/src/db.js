@@ -35,6 +35,32 @@ const migrations = [
       `)
     },
   },
+  {
+    version: 2,
+    name: 'Auth: Rollen, Sessions, Audit-Log',
+    up(db) {
+      db.exec(`
+        ALTER TABLE users ADD COLUMN role TEXT NOT NULL DEFAULT 'admin';
+
+        CREATE TABLE sessions (
+          token_hash TEXT PRIMARY KEY,              -- SHA-256 des Session-Tokens
+          user_id    INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+          created_at INTEGER NOT NULL,
+          expires_at INTEGER NOT NULL
+        );
+        CREATE INDEX idx_sessions_user ON sessions(user_id);
+
+        CREATE TABLE audit_logs (
+          id       INTEGER PRIMARY KEY AUTOINCREMENT,
+          time     INTEGER NOT NULL,
+          username TEXT,
+          action   TEXT NOT NULL,                   -- z. B. auth.login, device.command
+          detail   TEXT                             -- JSON, niemals Secrets
+        );
+        CREATE INDEX idx_audit_time ON audit_logs(time);
+      `)
+    },
+  },
 ]
 
 export function openDb(file = config.dbFile) {

@@ -1,26 +1,36 @@
 # Sicherheit
 
-## Aktueller Stand (ehrlich)
+## Authentifizierung (umgesetzt)
 
-Die App hat **noch kein Login** (kommt in Phase 3) und darf deshalb
-**nur im lokalen Netz bzw. hinter dem VPN** betrieben werden — nicht
-öffentlich erreichbar machen.
+- **Ersteinrichtung:** Beim ersten Start (keine Benutzer vorhanden) legt der
+  Besitzer über die App Benutzername + Passwort fest (`POST /api/auth/setup`,
+  danach dauerhaft gesperrt).
+- **Passwörter:** Argon2id (`@node-rs/argon2`, OWASP-Parameter m=19456, t=2,
+  p=1), niemals Klartext. Bei unbekanntem Benutzer läuft eine
+  Dummy-Verifikation, damit Antwortzeiten keine Benutzernamen verraten.
+- **Sessions:** 32-Byte-Zufallstoken, serverseitig nur als SHA-256-Hash in
+  SQLite gespeichert; 30 Tage gleitend; Cookie `HttpOnly`, `SameSite=Lax`,
+  `Secure` in Produktion. Logout löscht die Session serverseitig.
+- **Brute-Force-Schutz:** max. 5 Fehlversuche pro IP+Benutzername in
+  15 Minuten, danach 429.
+- **Zugriff:** Alle `/api/*`-Routen außer `/api/auth/*` erfordern eine
+  gültige Session (401 sonst).
+- **Audit-Log:** `audit_logs`-Tabelle für Login/Logout, fehlgeschlagene
+  Logins, Gerätebefehle und Metadaten-Änderungen — ohne Secrets.
+- **Header:** `X-Content-Type-Options`, `X-Frame-Options=DENY`,
+  `Referrer-Policy`, `Permissions-Policy`; `x-powered-by` deaktiviert.
+  Kein offenes CORS — Frontend und API laufen hinter demselben Origin
+  (Vite-Proxy in Entwicklung, Reverse Proxy in Produktion).
+- Weiterhin: Zod-Validierung aller schreibenden Endpunkte, keine
+  Stacktraces an Clients, Secrets nur in `backend/.env` (nicht im Git).
 
-Bereits umgesetzt:
+## Geplant
 
-- Zugangsdaten ausschließlich in `backend/.env` (per `.gitignore` vom Git
-  ausgeschlossen); `x-powered-by` deaktiviert; serverseitige
-  Zod-Validierung aller schreibenden Endpunkte; keine Stacktraces oder
-  rohen API-Fehler in Antworten; Secrets tauchen nicht in Logs auf.
-
-## Geplant (Phase 3 ff.)
-
-- Login mit bcrypt/Argon2id-Passwort-Hashes, sichere Sessions
-  (HttpOnly, SameSite) bzw. Tokens; Vorbereitung für TOTP-2FA/Passkeys
-- Rollen (ADMIN/USER/GUEST), Audit-Log sicherheitsrelevanter Aktionen
-- Rate Limiting/Brute-Force-Schutz, Security-Header (Helmet),
-  restriktives CORS (aktuell offen für die lokale Entwicklung)
-- HTTPS über Reverse Proxy (Caddy/Nginx) im Produktivbetrieb
+- TOTP-2FA bzw. Passkeys/WebAuthn (Architektur lässt das zu: Auth ist in
+  core/auth.js gekapselt)
+- Rollen feiner ausgestalten (USER/GUEST mit eingeschränkten Rechten)
+- HTTPS über Reverse Proxy (Caddy/Nginx) im Produktivbetrieb; erst dann
+  von außen erreichbar machen
 
 ## Netzwerkmodell
 
