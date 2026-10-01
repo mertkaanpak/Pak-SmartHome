@@ -1,15 +1,16 @@
 import { useEffect, useRef, useState } from 'react'
-import { cameraWebrtcOffer } from '../api.js'
 
-// Live-Ansicht per WebRTC: Signaling läuft über das Backend (Login-
-// geschützt), die Mediendaten danach direkt vom Media-Gateway.
-export function CameraPlayer({ cameraId, name }) {
+// Live-Ansicht per WebRTC. `negotiate(offerSdp)` übernimmt das Signaling
+// (lokales Gateway oder Ring) und liefert { sdp, close? } — die
+// Mediendaten laufen danach direkt.
+export function CameraPlayer({ negotiate, name }) {
   const videoRef = useRef(null)
   const [state, setState] = useState('connecting') // connecting | live | error
   const [error, setError] = useState(null)
 
   useEffect(() => {
     let closed = false
+    let closeSession = null
     const pc = new RTCPeerConnection()
     pc.addTransceiver('video', { direction: 'recvonly' })
     pc.addTransceiver('audio', { direction: 'recvonly' })
@@ -43,9 +44,13 @@ export function CameraPlayer({ cameraId, name }) {
           pc.addEventListener('icegatheringstatechange', onChange)
           setTimeout(resolve, 2000)
         })
-        const answer = await cameraWebrtcOffer(cameraId, pc.localDescription.sdp)
-        if (closed) return
-        await pc.setRemoteDescription({ type: 'answer', sdp: answer })
+        const result = await negotiate(pc.localDescription.sdp)
+        if (closed) {
+          result.close?.()
+          return
+        }
+        closeSession = result.close ?? null
+        await pc.setRemoteDescription({ type: 'answer', sdp: result.sdp })
       } catch (err) {
         if (closed) return
         setError(err.message)
@@ -56,8 +61,10 @@ export function CameraPlayer({ cameraId, name }) {
     return () => {
       closed = true
       pc.close()
+      closeSession?.()
     }
-  }, [cameraId])
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- negotiate ist pro Kamera stabil
+  }, [])
 
   return (
     <div className="camera-player">

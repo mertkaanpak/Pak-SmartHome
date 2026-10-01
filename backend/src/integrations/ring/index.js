@@ -1,4 +1,5 @@
-import { Router } from 'express'
+import { randomUUID } from 'node:crypto'
+import express, { Router } from 'express'
 import { z } from 'zod'
 // Gepflegter Fork des ring-mqtt-Maintainers: enthält die Fixes für Rings
 // Auth-Umstellung vom Februar 2026 (Cloudflare WAF verlangt App-identische
@@ -109,6 +110,16 @@ export function createRingAdapter({ settings, events } = {}) {
   }
 
   async function getSnapshot(externalId) {
+    const camera = await findCamera(externalId)
+    // Batteriekameras brauchen fürs Aufwachen gern ein paar Sekunden
+    return withTimeout(
+      camera.getSnapshot(),
+      25_000,
+      'Die Kamera liefert gerade kein Standbild (evtl. im Energiesparmodus)',
+    )
+  }
+
+  async function findCamera(externalId) {
     const ring = getApi()
     if (!ring) throw new IntegrationError('Ring nicht verbunden')
     const cameras = await withTimeout(
@@ -118,15 +129,54 @@ export function createRingAdapter({ settings, events } = {}) {
     )
     const camera = cameras.find((c) => String(c.id) === externalId)
     if (!camera) throw new HttpError(404, 'Ring-Kamera nicht gefunden')
-    // Batteriekameras brauchen fürs Aufwachen gern ein paar Sekunden
-    return withTimeout(
-      camera.getSnapshot(),
-      25_000,
-      'Die Kamera liefert gerade kein Standbild (evtl. im Energiesparmodus)',
-    )
+    return camera
+  }
+
+  // Aktive Live-Sitzungen: nach 10 Minuten serverseitig beenden, damit
+  // vergessene Tabs keine Dauerstreams bei Ring offen halten.
+  const LIVE_SESSION_MAX_MS = 10 * 60 * 1000
+  const liveSessions = new Map() // sessionId -> { session, timer }
+
+  function endLiveSession(sessionId) {
+    const entry = liveSessions.get(sessionId)
+    if (!entry) return
+    clearTimeout(entry.timer)
+    liveSessions.delete(sessionId)
+    entry.session.end().catch(() => {})
   }
 
   const router = Router()
+
+  // Live-Video per WebRTC: Browser-Offer rein, Ring-Answer zurück.
+  // Die Mediendaten laufen danach direkt Browser <-> Ring-Server.
+  router.post(
+    '/cameras/:id/live',
+    express.text({ type: ['application/sdp', 'text/plain'], limit: '64kb' }),
+    async (req, res) => {
+      const camera = await findCamera(req.params.id)
+      const session = camera.createSimpleWebRtcSession()
+      const answer = await withTimeout(
+        session.start(req.body),
+        REQUEST_TIMEOUT_MS,
+        'Ring startet den Live-Stream gerade nicht (Zeitüberschreitung)',
+      ).catch((err) => {
+        session.end().catch(() => {})
+        throw err instanceof HttpError || err instanceof IntegrationError
+          ? err
+          : new IntegrationError('Ring-Live-Stream konnte nicht gestartet werden')
+      })
+      const sessionId = randomUUID().slice(0, 12)
+      const timer = setTimeout(() => endLiveSession(sessionId), LIVE_SESSION_MAX_MS)
+      timer.unref?.()
+      liveSessions.set(sessionId, { session, timer })
+      res.json({ sdp: answer, sessionId })
+    },
+  )
+
+  router.delete('/live/:sessionId', (req, res) => {
+    endLiveSession(req.params.sessionId)
+    res.json({ ok: true })
+  })
 
   // Aktuelles Standbild einer Ring-Kamera (JPEG)
   router.get('/cameras/:id/snapshot', async (req, res) => {

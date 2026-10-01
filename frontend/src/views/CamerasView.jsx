@@ -1,8 +1,19 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
+import { cameraWebrtcOffer, ringLiveStart, ringLiveStop } from '../api.js'
 import { CameraPlayer } from '../components/CameraPlayer.jsx'
 import { IconCamera, IconRefresh } from '../components/icons.jsx'
 import { useDevices } from '../state/DevicesContext.jsx'
+
+// Signaling-Varianten: lokales Gateway (go2rtc) vs. Ring-Cloud
+const negotiateLocal = (cameraId) => async (offer) => ({
+  sdp: await cameraWebrtcOffer(cameraId, offer),
+})
+
+const negotiateRing = (cameraId) => async (offer) => {
+  const { sdp, sessionId } = await ringLiveStart(cameraId, offer)
+  return { sdp, close: () => ringLiveStop(sessionId) }
+}
 
 const STATUS_LABELS = {
   ONLINE: { text: 'Online', pill: 'pill-ok' },
@@ -58,11 +69,16 @@ export function CamerasView() {
                 </span>
                 <span className={`pill ${status.pill}`}>{status.text}</span>
               </div>
-              {camera.integration === 'ring' ? (
-                <RingSnapshot camera={camera} />
-              ) : active ? (
+              {active ? (
                 <>
-                  <CameraPlayer cameraId={camera.externalId} name={camera.name} />
+                  <CameraPlayer
+                    negotiate={
+                      camera.integration === 'ring'
+                        ? negotiateRing(camera.externalId)
+                        : negotiateLocal(camera.externalId)
+                    }
+                    name={camera.name}
+                  />
                   <div className="camera-actions">
                     <button
                       className="chip"
@@ -81,9 +97,15 @@ export function CamerasView() {
                   </div>
                 </>
               ) : (
-                <button className="camera-start" onClick={() => setActiveId(camera.externalId)}>
-                  <IconCamera size={18} /> Live ansehen
-                </button>
+                <>
+                  <button
+                    className="camera-start"
+                    onClick={() => setActiveId(camera.externalId)}
+                  >
+                    <IconCamera size={18} /> Live ansehen
+                  </button>
+                  {camera.integration === 'ring' && <RingSnapshot camera={camera} />}
+                </>
               )}
             </article>
           )

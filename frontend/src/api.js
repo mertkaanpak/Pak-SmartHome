@@ -69,7 +69,7 @@ export const deleteCamera = (id) =>
 export const testCamera = (id) =>
   api(`/api/integrations/cameras/cameras/${id}/test`, { method: 'POST' })
 
-// WebRTC-Signaling: SDP-Offer hin, SDP-Answer zurück (Klartext, kein JSON)
+// WebRTC-Signaling lokale Kameras: SDP-Offer hin, SDP-Answer zurück
 export async function cameraWebrtcOffer(cameraId, offerSdp) {
   const res = await fetch(`/api/cameras/${cameraId}/webrtc`, {
     method: 'POST',
@@ -81,6 +81,25 @@ export async function cameraWebrtcOffer(cameraId, offerSdp) {
     throw new Error(data.error ?? 'Stream nicht verfügbar')
   }
   return res.text()
+}
+
+// WebRTC-Signaling Ring: liefert Answer + Sitzungs-ID (zum Beenden)
+export async function ringLiveStart(cameraId, offerSdp) {
+  const res = await fetch(`/api/integrations/ring/cameras/${cameraId}/live`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/sdp' },
+    body: offerSdp,
+  })
+  const data = await res.json().catch(() => ({}))
+  if (!res.ok) throw new Error(data.error ?? 'Live-Stream nicht verfügbar')
+  return data // { sdp, sessionId }
+}
+
+export function ringLiveStop(sessionId) {
+  // keepalive: wird auch beim Schließen der Seite noch zugestellt
+  fetch(`/api/integrations/ring/live/${sessionId}`, { method: 'DELETE', keepalive: true }).catch(
+    () => {},
+  )
 }
 
 export const fetchAutomations = () => api('/api/automations')
