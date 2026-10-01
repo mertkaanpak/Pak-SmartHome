@@ -138,15 +138,23 @@ export function createRingAdapter({ settings, events } = {}) {
           prompt: client.promptFor2fa ?? 'Bitte den Bestätigungscode von Ring eingeben',
         })
       }
-      log.warn('Ring-Anmeldung fehlgeschlagen')
+      // Die echte Ring-Begründung loggen (ohne Zugangsdaten) — sonst ist
+      // "Passwort falsch" nur geraten.
+      const detail = String(err?.message ?? err).slice(0, 300)
+      log.warn('Ring-Anmeldung fehlgeschlagen', { detail, hadCode: Boolean(code) })
+
+      let message = code
+        ? 'Der Bestätigungscode wurde nicht akzeptiert'
+        : 'Ring hat die Anmeldung abgelehnt — E-Mail und Passwort prüfen'
+      if (/too many|429/i.test(detail)) {
+        message = 'Ring blockiert vorübergehend weitere Versuche — bitte in einigen Minuten erneut probieren'
+      } else if (/captcha|suspicious|blocked/i.test(detail)) {
+        message =
+          'Ring verlangt eine zusätzliche Bestätigung — bitte einmal auf ring.com anmelden und es danach hier erneut versuchen'
+      }
       // Bewusst 400 statt 401: ein 401 würde das Frontend als abgelaufene
       // App-Sitzung deuten und zum Login springen.
-      throw new HttpError(
-        400,
-        code
-          ? 'Der Bestätigungscode wurde nicht akzeptiert'
-          : 'Ring-Anmeldung fehlgeschlagen — E-Mail und Passwort prüfen',
-      )
+      throw new HttpError(400, message)
     }
   })
 
