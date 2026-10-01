@@ -1,3 +1,4 @@
+import { existsSync } from 'node:fs'
 import { dirname, join } from 'node:path'
 import express from 'express'
 import cookieParser from 'cookie-parser'
@@ -74,14 +75,27 @@ app.use(
 )
 app.use('/api/system', requireAuth, createSystemRouter({ db, adapters }))
 
+// Gebaute Frontend-App direkt mitliefern (frontend/dist), damit Handy &
+// Co. nur einen Server brauchen. API-Routen bleiben davon unberührt;
+// alle übrigen GET-Pfade bekommen die Single-Page-App (Router im Client).
+const distDir = join(process.cwd(), '..', 'frontend', 'dist')
+if (existsSync(join(distDir, 'index.html'))) {
+  app.use(express.static(distDir))
+  app.use((req, res, next) => {
+    if (req.method !== 'GET' || req.path.startsWith('/api')) return next()
+    res.sendFile(join(distDir, 'index.html'))
+  })
+  log.info('Frontend wird mit ausgeliefert', { distDir })
+}
+
 app.use(notFound)
 app.use(errorHandler)
 
 automations.start()
 for (const adapter of adapters) adapter.initialize?.()
 
-const server = app.listen(config.port, () => {
-  log.info(`SmartHome-Backend läuft auf http://localhost:${config.port}`)
+const server = app.listen(config.port, config.host, () => {
+  log.info(`SmartHome-Backend läuft auf http://localhost:${config.port} (Host: ${config.host})`)
 })
 
 function shutdown(signal) {

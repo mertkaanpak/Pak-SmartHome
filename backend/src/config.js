@@ -2,6 +2,9 @@ import 'dotenv/config'
 
 export const config = {
   port: Number(process.env.PORT ?? 3001),
+  // 0.0.0.0: im (Heim-)Netz erreichbar, z. B. vom Handy — die App selbst
+  // ist durch den Login geschützt
+  host: process.env.HOST ?? '0.0.0.0',
   dbFile: process.env.DB_FILE ?? './data/smarthome.db',
 
   tuya: {
