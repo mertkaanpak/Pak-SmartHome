@@ -1018,6 +1018,7 @@ input {
 }
 
 .auth-label {
+  display: block;
   font-size: var(--fs-micro);
   font-weight: 650;
   color: var(--text-muted);
@@ -1027,6 +1028,8 @@ input {
 }
 
 .auth-input {
+  display: block;
+  width: 100%;
   height: 48px;
   border-radius: var(--radius-s);
   border: 1px solid var(--border-strong);

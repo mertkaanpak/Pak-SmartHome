@@ -5,8 +5,19 @@ import { formatTime, groupByDay } from '../lib/time.js'
 
 const FILTERS = [
   { key: 'all', label: 'Alle', match: () => true },
-  { key: 'devices', label: 'Geräte', match: (e) => e.type.startsWith('device.') },
-  { key: 'scenes', label: 'Szenen', match: (e) => e.type.startsWith('scene.') },
+  {
+    key: 'devices',
+    label: 'Geräte',
+    match: (e) =>
+      e.type.startsWith('device.') ||
+      e.type.startsWith('doorbell.') ||
+      e.type.startsWith('camera.'),
+  },
+  {
+    key: 'scenes',
+    label: 'Szenen',
+    match: (e) => e.type.startsWith('scene.') || e.type.startsWith('automation.'),
+  },
   { key: 'users', label: 'Anmeldungen', match: (e) => e.type.startsWith('user.') },
 ]
 

@@ -82,7 +82,7 @@ in `backend/.env` (nicht im Git) — niemals im Frontend oder in Logs.
 | 2 | Geräteabstraktion & Adapter-Architektur | ✅ |
 | 3 | Benutzer, Auth, Security (Argon2id, Sessions, Rate-Limit, Audit-Log) | ✅ |
 | 4 | Tuya real steuern | ✅ funktionierte im Juli — **Tuya-IoT-Core-Abo abgelaufen, im Tuya-Portal kostenlos verlängern** |
-| 5 | Ring | ⬜ benötigt Refresh-Token |
+| 5 | Ring | 🔶 Adapter + In-App-Anmeldung fertig (Mehr → Integrationen); Live-Test wartet auf deine Ring-Anmeldung |
 | 6 | ONVIF/RTSP-Kamerastreaming | ⬜ benötigt Kameramodell |
 | 7 | Dashboard mit echten Daten | 🔶 Rollläden fertig, Rest folgt mit den Integrationen |
 | 8 | Räume & Favoriten | 🔶 Backend fertig (`PATCH /api/devices/:id`), Verwaltungs-UI folgt |

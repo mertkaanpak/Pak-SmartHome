@@ -50,6 +50,14 @@ export const deleteScene = (id) => api(`/api/scenes/${id}`, { method: 'DELETE' }
 
 export const executeScene = (id) => api(`/api/scenes/${id}/execute`, { method: 'POST' })
 
+export const ringAuth = (email, password, code) =>
+  api('/api/integrations/ring/auth', json('POST', code ? { email, password, code } : { email, password }))
+
+export const ringDisconnect = () => api('/api/integrations/ring/auth', { method: 'DELETE' })
+
+export const saveTuyaSettings = (settings) =>
+  api('/api/integrations/tuya/settings', json('POST', settings))
+
 export const fetchAutomations = () => api('/api/automations')
 
 export const createAutomation = (automation) => api('/api/automations', json('POST', automation))

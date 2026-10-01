@@ -23,6 +23,11 @@
   (Vite-Proxy in Entwicklung, Reverse Proxy in Produktion).
 - Weiterhin: Zod-Validierung aller schreibenden Endpunkte, keine
   Stacktraces an Clients, Secrets nur in `backend/.env` (nicht im Git).
+- **In der App hinterlegte Zugangsdaten** (Tuya-Keys, Ring-Refresh-Token)
+  liegen AES-256-GCM-verschlüsselt in SQLite; der Schlüssel steht in
+  `backend/data/secret.key` (git-ignoriert, getrennt von DB-Backups).
+  Ring-E-Mail/Passwort werden nur für den Anmeldevorgang an Ring
+  durchgereicht und nie gespeichert oder geloggt.
 
 ## Geplant
 

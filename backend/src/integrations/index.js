@@ -5,6 +5,10 @@ import { createOnvifAdapter } from './onvif/index.js'
 // Zentrale Adapter-Registrierung. Neue Integrationen (Hue, Shelly, …)
 // bekommen einen eigenen Ordner mit Adapter nach integrations/adapter.js
 // und werden hier ergänzt — mehr ist nicht nötig.
-export function createAdapters() {
-  return [createTuyaAdapter(), createRingAdapter(), createOnvifAdapter()]
+export function createAdapters({ settings, events } = {}) {
+  return [
+    createTuyaAdapter({ settings }),
+    createRingAdapter({ settings, events }),
+    createOnvifAdapter(),
+  ]
 }

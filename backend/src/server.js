@@ -1,3 +1,4 @@
+import { dirname, join } from 'node:path'
 import express from 'express'
 import cookieParser from 'cookie-parser'
 import { config } from './config.js'
@@ -9,6 +10,8 @@ import { createAudit } from './core/audit.js'
 import { createAuthService } from './core/auth.js'
 import { createEventBus } from './core/events.js'
 import { createSceneService } from './core/sceneService.js'
+import { createSecrets } from './core/secrets.js'
+import { createSettingsService } from './core/settingsService.js'
 import { createAutomationService } from './core/automationService.js'
 import { createAutomationsRouter } from './routes/automations.js'
 import { createAuthRouter } from './routes/auth.js'
@@ -34,7 +37,9 @@ const audit = createAudit(db)
 const auth = createAuthService(db, audit)
 const requireAuth = createRequireAuth(auth)
 const events = createEventBus(db)
-const adapters = createAdapters()
+const secrets = createSecrets(join(dirname(config.dbFile), 'secret.key'))
+const settings = createSettingsService(db, secrets)
+const adapters = createAdapters({ settings, events })
 const deviceService = createDeviceService({ db, adapters, events })
 const scenes = createSceneService({ db, deviceService, events, audit })
 const automations = createAutomationService({
@@ -59,6 +64,7 @@ app.use(notFound)
 app.use(errorHandler)
 
 automations.start()
+for (const adapter of adapters) adapter.initialize?.()
 
 const server = app.listen(config.port, () => {
   log.info(`SmartHome-Backend läuft auf http://localhost:${config.port}`)

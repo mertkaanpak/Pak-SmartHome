@@ -9,6 +9,7 @@ import { CamerasView } from './views/CamerasView.jsx'
 import { ScenesView } from './views/ScenesView.jsx'
 import { EventsView } from './views/EventsView.jsx'
 import { AutomationsView } from './views/AutomationsView.jsx'
+import { IntegrationsView } from './views/IntegrationsView.jsx'
 import { MoreView } from './views/MoreView.jsx'
 
 export default function App() {
@@ -29,6 +30,7 @@ export default function App() {
           <Route path="/szenen" element={<ScenesView />} />
           <Route path="/ereignisse" element={<EventsView />} />
           <Route path="/automationen" element={<AutomationsView />} />
+          <Route path="/integrationen" element={<IntegrationsView />} />
           <Route path="/mehr" element={<MoreView />} />
           <Route path="*" element={<HomeView />} />
         </Routes>

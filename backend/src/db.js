@@ -114,6 +114,19 @@ const migrations = [
       `)
     },
   },
+  {
+    version: 5,
+    name: 'Integrations-Einstellungen',
+    up(db) {
+      db.exec(`
+        CREATE TABLE integration_settings (
+          integration TEXT PRIMARY KEY,
+          data        TEXT NOT NULL,                -- AES-256-GCM-verschlüsseltes JSON
+          updated_at  INTEGER NOT NULL
+        );
+      `)
+    },
+  },
 ]
 
 export function openDb(file = config.dbFile) {

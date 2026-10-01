@@ -1,10 +1,12 @@
 import { Router } from 'express'
 import { TuyaContext } from '@tuya/tuya-connector-nodejs'
+import { z } from 'zod'
 import { config } from '../../config.js'
 import { createLogger } from '../../logger.js'
 import { IntegrationError } from '../../errors.js'
 import { withTimeout } from '../../core/async.js'
 import { Capability, DeviceStatus, DeviceType } from '../../core/capabilities.js'
+import { validateBody } from '../../middleware/validate.js'
 
 const REQUEST_TIMEOUT_MS = 10_000
 
@@ -12,16 +14,16 @@ const REQUEST_TIMEOUT_MS = 10_000
 // schalter, cljkq = Vorhang-Controller.
 const COVER_CATEGORIES = new Set(['cl', 'clkg', 'cljkq'])
 
-// Abbildung der einheitlichen Befehle auf Tuya-DP-Codes.
 // Bekannte Tuya-Fehlercodes mit verständlicher Meldung (§57: keine rohen
 // API-Fehler für Benutzer). Alles andere bekommt die generische Meldung.
 const KNOWN_ERRORS = {
   28841002:
     'Tuya-Probeabo abgelaufen — unter iot.tuya.com den IoT-Core-Dienst kostenlos verlängern',
   1106: 'Tuya-Zugriff verweigert — Projekt-Berechtigungen und Rechenzentrum prüfen',
-  1004: 'Tuya-Signatur ungültig — Access ID/Secret in backend/.env prüfen',
+  1004: 'Tuya-Signatur ungültig — Access ID/Secret prüfen',
 }
 
+// Abbildung der einheitlichen Befehle auf Tuya-DP-Codes.
 const COMMANDS = {
   open: () => ({ code: 'control', value: 'open' }),
   close: () => ({ code: 'control', value: 'close' }),
@@ -29,19 +31,54 @@ const COMMANDS = {
   setPosition: (params) => ({ code: 'percent_control', value: params.percent }),
 }
 
-export function createTuyaAdapter() {
-  const log = createLogger('tuya')
-  const configured = Boolean(config.tuya.accessId && config.tuya.accessSecret)
+export const TUYA_DATACENTERS = [
+  { url: 'https://openapi.tuyaeu.com', label: 'Europa' },
+  { url: 'https://openapi.tuyaus.com', label: 'USA' },
+  { url: 'https://openapi.tuyain.com', label: 'Indien' },
+  { url: 'https://openapi.tuyacn.com', label: 'China' },
+]
 
-  const tuya = configured
-    ? new TuyaContext({
-        baseUrl: config.tuya.apiUrl,
-        accessKey: config.tuya.accessId,
-        secretKey: config.tuya.accessSecret,
+const settingsSchema = z.object({
+  accessId: z.string().trim().min(10, 'Access ID prüfen').max(40),
+  accessSecret: z.string().trim().min(10, 'Access Secret prüfen').max(64),
+  apiUrl: z.enum(TUYA_DATACENTERS.map((d) => d.url)).default('https://openapi.tuyaeu.com'),
+})
+
+export function createTuyaAdapter({ settings } = {}) {
+  const log = createLogger('tuya')
+
+  // In der App gespeicherte Zugangsdaten haben Vorrang vor backend/.env
+  function resolveCredentials() {
+    const stored = settings?.get('tuya')
+    return {
+      accessId: stored?.accessId ?? config.tuya.accessId,
+      accessSecret: stored?.accessSecret ?? config.tuya.accessSecret,
+      apiUrl: stored?.apiUrl ?? config.tuya.apiUrl,
+    }
+  }
+
+  let context = null
+  let contextKey = ''
+  function getContext() {
+    const creds = resolveCredentials()
+    if (!creds.accessId || !creds.accessSecret) return null
+    const key = `${creds.accessId}|${creds.accessSecret}|${creds.apiUrl}`
+    if (!context || key !== contextKey) {
+      context = new TuyaContext({
+        baseUrl: creds.apiUrl,
+        accessKey: creds.accessId,
+        secretKey: creds.accessSecret,
       })
-    : null
+      contextKey = key
+    }
+    return context
+  }
 
   async function request(options) {
+    const tuya = getContext()
+    if (!tuya) {
+      throw new IntegrationError('Tuya nicht konfiguriert — Zugangsdaten unter Integrationen eintragen')
+    }
     const result = await withTimeout(
       tuya.request(options),
       REQUEST_TIMEOUT_MS,
@@ -90,8 +127,15 @@ export function createTuyaAdapter() {
     }
   }
 
-  // Diagnose-Routen (Admin): rohe DP-Codes eines Geräts einsehen
   const router = Router()
+
+  // Zugangsdaten aus der App speichern (verschlüsselt in SQLite)
+  router.post('/settings', validateBody(settingsSchema), (req, res) => {
+    settings.set('tuya', req.body)
+    res.json({ ok: true })
+  })
+
+  // Diagnose (Admin): rohe DP-Codes eines Geräts einsehen
   router.get('/devices/:id/functions', async (req, res) => {
     res.json(await request({ method: 'GET', path: `/v1.0/devices/${req.params.id}/functions` }))
   })
@@ -100,7 +144,9 @@ export function createTuyaAdapter() {
     name: 'tuya',
     label: 'Rollläden',
     manufacturer: 'Tuya',
-    configured,
+    get configured() {
+      return Boolean(getContext())
+    },
     router,
 
     async getDevices() {
@@ -125,7 +171,7 @@ export function createTuyaAdapter() {
     },
 
     async healthCheck() {
-      if (!configured) return { status: 'not_configured' }
+      if (!getContext()) return { status: 'not_configured' }
       try {
         await request({
           method: 'GET',

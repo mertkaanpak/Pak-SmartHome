@@ -1,7 +1,13 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { fetchHealth, fetchIntegrations } from '../api.js'
-import { IconBolt, IconChevronRight, IconClock, IconRefresh } from '../components/icons.jsx'
+import {
+  IconBolt,
+  IconChevronRight,
+  IconClock,
+  IconDevice,
+  IconRefresh,
+} from '../components/icons.jsx'
 import { getTheme, setTheme } from '../lib/theme.js'
 import { useAuth } from '../state/AuthContext.jsx'
 
@@ -125,6 +131,13 @@ export function MoreView() {
               <IconClock size={18} />
             </span>
             <span className="status-row-label">Ereignis-Timeline</span>
+            <IconChevronRight size={17} />
+          </Link>
+          <Link to="/integrationen" className="status-row status-row-link">
+            <span className="timeline-icon">
+              <IconDevice size={18} />
+            </span>
+            <span className="status-row-label">Integrationen</span>
             <IconChevronRight size={17} />
           </Link>
         </div>
