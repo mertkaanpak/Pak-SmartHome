@@ -12,6 +12,8 @@ import { createEventBus } from './core/events.js'
 import { createSceneService } from './core/sceneService.js'
 import { createSecrets } from './core/secrets.js'
 import { createSettingsService } from './core/settingsService.js'
+import { createGateway } from './core/gateway.js'
+import { createCamerasRouter } from './routes/cameras.js'
 import { createAutomationService } from './core/automationService.js'
 import { createAutomationsRouter } from './routes/automations.js'
 import { createAuthRouter } from './routes/auth.js'
@@ -39,7 +41,11 @@ const requireAuth = createRequireAuth(auth)
 const events = createEventBus(db)
 const secrets = createSecrets(join(dirname(config.dbFile), 'secret.key'))
 const settings = createSettingsService(db, secrets)
-const adapters = createAdapters({ settings, events })
+const gateway = createGateway({
+  binaryPath: join(process.cwd(), '..', 'gateway', process.platform === 'win32' ? 'go2rtc.exe' : 'go2rtc'),
+  configPath: join(process.cwd(), '..', 'gateway', 'go2rtc.yaml'),
+})
+const adapters = createAdapters({ settings, events, gateway })
 const deviceService = createDeviceService({ db, adapters, events })
 const scenes = createSceneService({ db, deviceService, events, audit })
 const automations = createAutomationService({
@@ -58,6 +64,14 @@ app.use('/api/events', requireAuth, createEventsRouter(events))
 app.use('/api/scenes', requireAuth, createScenesRouter(scenes))
 app.use('/api/automations', requireAuth, createAutomationsRouter(automations))
 app.use('/api/integrations', requireAuth, createIntegrationsRouter(adapters))
+app.use(
+  '/api/cameras',
+  requireAuth,
+  createCamerasRouter({
+    camerasAdapter: adapters.find((a) => a.name === 'cameras'),
+    gateway,
+  }),
+)
 app.use('/api/system', requireAuth, createSystemRouter({ db, adapters }))
 
 app.use(notFound)
@@ -73,6 +87,7 @@ const server = app.listen(config.port, () => {
 function shutdown(signal) {
   log.info('Beende Server', { signal })
   automations.stop()
+  gateway.stop()
   server.close(() => {
     db.close()
     process.exit(0)

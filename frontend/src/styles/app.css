@@ -986,6 +986,75 @@ input {
   transform: translateX(18px);
 }
 
+/* ============ Kameras ============ */
+.camera-card {
+  overflow: hidden;
+}
+
+.camera-start {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  padding: var(--space-4);
+  border-top: 1px solid var(--border);
+  color: var(--accent);
+  font-weight: 600;
+  transition: background var(--dur-fast) var(--ease-out);
+}
+
+.camera-start:active {
+  background: var(--surface-2);
+}
+
+.camera-player {
+  position: relative;
+  background: #000;
+}
+
+.camera-video {
+  display: block;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  object-fit: contain;
+  background: #000;
+}
+
+.camera-overlay {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  color: #cfd5e0;
+  font-size: var(--fs-small);
+  padding: var(--space-4);
+  text-align: center;
+}
+
+.camera-overlay-error {
+  color: var(--danger-soft);
+}
+
+.camera-live-badge {
+  position: absolute;
+  top: var(--space-3);
+  left: var(--space-3);
+  background: rgba(0, 0, 0, 0.55);
+  color: #4ade80;
+  font-size: var(--fs-micro);
+  font-weight: 650;
+  padding: 3px 9px;
+  border-radius: 999px;
+}
+
+.camera-actions {
+  display: flex;
+  gap: var(--space-2);
+  padding: var(--space-3) var(--space-4);
+  border-top: 1px solid var(--border);
+}
+
 /* ============ Anmeldung / Ersteinrichtung ============ */
 .auth-screen {
   min-height: 100dvh;

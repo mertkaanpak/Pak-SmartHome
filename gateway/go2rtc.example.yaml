@@ -1,0 +1,18 @@
+# Vorlage für die go2rtc-Konfiguration (Media-Gateway von Pak SmartHome).
+# Das Backend kopiert diese Datei beim ersten Start automatisch nach
+# go2rtc.yaml. Die Live-Datei ist git-ignoriert, weil go2rtc die in der
+# App angelegten Kamera-Streams (inkl. Zugangsdaten) dort hineinschreibt.
+
+api:
+  # Nur lokal erreichbar — der Browser spricht ausschließlich mit dem
+  # Backend (Login-geschützt), das Signaling hierher weiterreicht.
+  listen: "127.0.0.1:1984"
+
+rtsp:
+  listen: ""  # eingebauten RTSP-Server nicht öffnen
+
+webrtc:
+  listen: ":8555"
+
+log:
+  level: info

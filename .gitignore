@@ -3,3 +3,10 @@ dist/
 .env
 backend/data/
 *.log
+
+# go2rtc: Binary nicht einchecken (Download: siehe README); die Live-Config
+# auch nicht — go2rtc schreibt Kamera-Streams inkl. Zugangsdaten hinein.
+gateway/go2rtc.exe
+gateway/go2rtc
+gateway/*.zip
+gateway/go2rtc.yaml

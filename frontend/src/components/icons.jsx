@@ -200,5 +200,5 @@ export const TYPE_ICONS = {
 export const INTEGRATION_ICONS = {
   tuya: IconBlinds,
   ring: IconBell,
-  onvif: IconCamera,
+  cameras: IconCamera,
 }

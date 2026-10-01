@@ -83,13 +83,23 @@ in `backend/.env` (nicht im Git) — niemals im Frontend oder in Logs.
 | 3 | Benutzer, Auth, Security (Argon2id, Sessions, Rate-Limit, Audit-Log) | ✅ |
 | 4 | Tuya real steuern | ✅ funktionierte im Juli — **Tuya-IoT-Core-Abo abgelaufen, im Tuya-Portal kostenlos verlängern** |
 | 5 | Ring | 🔶 Adapter + In-App-Anmeldung fertig (Mehr → Integrationen); Live-Test wartet auf deine Ring-Anmeldung |
-| 6 | ONVIF/RTSP-Kamerastreaming | ⬜ benötigt Kameramodell |
+| 6 | Kamerastreaming (EseeCloud/RTSP → go2rtc → WebRTC) | 🔶 fertig gebaut; Live-Test braucht Kamera-IP + App-Test im Heimnetz (Modell JA-D300) |
 | 7 | Dashboard mit echten Daten | 🔶 Rollläden fertig, Rest folgt mit den Integrationen |
 | 8 | Räume & Favoriten | 🔶 Backend fertig (`PATCH /api/devices/:id`), Verwaltungs-UI folgt |
 | 9 | Events & Timeline (SSE-Live-Updates, Tagesgruppierung, Filter) | ✅ |
 | 10 | Szenen (Editor, Vorlagen, Teilerfolgs-Ergebnis) | ✅ |
 | 12 | Automationen (Uhrzeit/Sonnenauf-/-untergang ± Offset, Wochentage → Szene; Verwaltung komplett in der App) | ✅ |
 | 11, 13–16 | Push, WireGuard, Health-Feinschliff, Docker, UI-Feinschliff | ⬜ |
+
+## Media-Gateway (Kamera-Streams)
+
+Live-Streams laufen über [go2rtc](https://github.com/AlexxIT/go2rtc)
+(Kamera → go2rtc → WebRTC → Browser, lokal ohne Hersteller-Cloud).
+Einrichtung: `go2rtc_win64.zip` von den offiziellen GitHub-Releases laden
+und `go2rtc.exe` nach `gateway/` entpacken — das Backend startet es
+automatisch und verwaltet die Streams (Kameras hinzufügen: in der App
+unter Mehr → Integrationen → Kameras). `gateway/go2rtc.yaml` ist
+git-ignoriert, weil go2rtc dort Kamera-Zugangsdaten persistiert.
 
 ## Troubleshooting
 

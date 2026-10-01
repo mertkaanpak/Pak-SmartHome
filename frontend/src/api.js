@@ -58,6 +58,30 @@ export const ringDisconnect = () => api('/api/integrations/ring/auth', { method:
 export const saveTuyaSettings = (settings) =>
   api('/api/integrations/tuya/settings', json('POST', settings))
 
+export const fetchCameras = () => api('/api/integrations/cameras/cameras')
+
+export const addCamera = (camera) => api('/api/integrations/cameras/cameras', json('POST', camera))
+
+export const deleteCamera = (id) =>
+  api(`/api/integrations/cameras/cameras/${id}`, { method: 'DELETE' })
+
+export const testCamera = (id) =>
+  api(`/api/integrations/cameras/cameras/${id}/test`, { method: 'POST' })
+
+// WebRTC-Signaling: SDP-Offer hin, SDP-Answer zurück (Klartext, kein JSON)
+export async function cameraWebrtcOffer(cameraId, offerSdp) {
+  const res = await fetch(`/api/cameras/${cameraId}/webrtc`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/sdp' },
+    body: offerSdp,
+  })
+  if (!res.ok) {
+    const data = await res.json().catch(() => ({}))
+    throw new Error(data.error ?? 'Stream nicht verfügbar')
+  }
+  return res.text()
+}
+
 export const fetchAutomations = () => api('/api/automations')
 
 export const createAutomation = (automation) => api('/api/automations', json('POST', automation))
