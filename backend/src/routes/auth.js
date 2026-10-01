@@ -14,7 +14,7 @@ const credentialsSchema = z.object({
   password: z.string().min(8, 'Passwort: mindestens 8 Zeichen').max(200),
 })
 
-export function createAuthRouter(auth) {
+export function createAuthRouter(auth, events) {
   const router = Router()
   const limiter = createLoginLimiter()
 
@@ -39,6 +39,10 @@ export function createAuthRouter(auth) {
     try {
       const { token, user } = await auth.login(req.body.username, req.body.password)
       limiter.reset(req)
+      events?.emit('user.login', {
+        username: user.username,
+        message: `${user.username} hat sich angemeldet`,
+      })
       res.cookie(SESSION_COOKIE, token, sessionCookieOptions())
       res.json({ user })
     } catch (err) {

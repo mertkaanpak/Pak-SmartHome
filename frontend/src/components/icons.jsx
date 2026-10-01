@@ -130,6 +130,60 @@ export const IconAlert = (props) => (
   </Icon>
 )
 
+export const IconMoon = (props) => (
+  <Icon {...props}>
+    <path d="M20 13.5A8 8 0 0 1 10.5 4 8 8 0 1 0 20 13.5z" />
+  </Icon>
+)
+
+export const IconSun = (props) => (
+  <Icon {...props}>
+    <circle cx="12" cy="12" r="4" />
+    <path d="M12 2.5v2M12 19.5v2M2.5 12h2M19.5 12h2M5 5l1.4 1.4M17.6 17.6 19 19M19 5l-1.4 1.4M6.4 17.6 5 19" />
+  </Icon>
+)
+
+export const IconLeave = (props) => (
+  <Icon {...props}>
+    <path d="M13 4H6a1.5 1.5 0 0 0-1.5 1.5v13A1.5 1.5 0 0 0 6 20h7" />
+    <path d="M16 8.5 19.5 12 16 15.5" />
+    <line x1="9.5" y1="12" x2="19.5" y2="12" />
+  </Icon>
+)
+
+export const IconEdit = (props) => (
+  <Icon {...props}>
+    <path d="M14.5 5.5 18.5 9.5 8.5 19.5H4.5v-4z" />
+    <path d="M12.5 7.5l4 4" />
+  </Icon>
+)
+
+export const IconCheck = (props) => (
+  <Icon {...props}>
+    <polyline points="5 12.5 10 17.5 19 7" />
+  </Icon>
+)
+
+export const IconTrash = (props) => (
+  <Icon {...props}>
+    <path d="M5 7h14M10 7V5h4v2M7 7l1 13h8l1-13" />
+  </Icon>
+)
+
+export const IconClock = (props) => (
+  <Icon {...props}>
+    <circle cx="12" cy="12" r="8.5" />
+    <polyline points="12 7.5 12 12 15 14" />
+  </Icon>
+)
+
+export const SCENE_ICONS = {
+  scene: IconScenes,
+  moon: IconMoon,
+  sun: IconSun,
+  leave: IconLeave,
+}
+
 export const TYPE_ICONS = {
   cover: IconBlinds,
   doorbell: IconBell,

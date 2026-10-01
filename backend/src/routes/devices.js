@@ -20,7 +20,14 @@ const metaSchema = z
   })
   .strict()
 
-export function createDevicesRouter(deviceService, audit) {
+const COMMAND_MESSAGES = {
+  open: (name) => `„${name}" wird geöffnet`,
+  close: (name) => `„${name}" wird geschlossen`,
+  stop: (name) => `„${name}" wurde gestoppt`,
+  setPosition: (name, params) => `„${name}" fährt auf ${params?.percent} %`,
+}
+
+export function createDevicesRouter(deviceService, audit, events) {
   const router = Router()
 
   // Einheitliche Geräteliste über alle Integrationen.
@@ -36,8 +43,13 @@ export function createDevicesRouter(deviceService, audit) {
 
   router.post('/:id/commands', validateBody(commandSchema), async (req, res) => {
     const { command, params } = req.body
-    await deviceService.executeCommand(req.params.id, command, params)
+    const device = await deviceService.executeCommand(req.params.id, command, params)
     audit?.(req.user?.username, 'device.command', { device: req.params.id, command, params })
+    events?.emit('device.command', {
+      deviceId: device.id,
+      username: req.user?.username,
+      message: COMMAND_MESSAGES[command]?.(device.name, params) ?? `Befehl an „${device.name}"`,
+    })
     res.json({ ok: true })
   })
 

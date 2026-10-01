@@ -9,10 +9,12 @@ const CACHE_TTL_MS = 5_000
 // (Raum, Favorit, eigener Name) aus der Datenbank dazu und leitet Befehle
 // an den zuständigen Adapter weiter. Fällt eine Integration aus, bleiben
 // die übrigen nutzbar (Fehler werden pro Integration gemeldet).
-export function createDeviceService({ db, adapters }) {
+export function createDeviceService({ db, adapters, events }) {
   const log = createLogger('devices')
   const adaptersByName = new Map(adapters.map((a) => [a.name, a]))
   let cache = { at: 0, result: null }
+  // Letzter bekannter Status pro Gerät — für Online/Offline-Ereignisse
+  let lastStatusById = null
 
   const selectAllMeta = db.prepare('SELECT * FROM device_meta')
   const selectMeta = db.prepare('SELECT * FROM device_meta WHERE id = ?')
@@ -58,6 +60,27 @@ export function createDeviceService({ db, adapters }) {
         errors.push({ integration: adapter.name, label: adapter.label, error: err.message })
       }
     }
+
+    // Statuswechsel erkennen und als Ereignis melden (nicht beim ersten
+    // Laden nach dem Start — da gibt es noch keinen Vergleichswert).
+    if (events && lastStatusById) {
+      for (const device of devices) {
+        const previous = lastStatusById.get(device.id)
+        if (!previous || previous === device.status) continue
+        if (device.status === 'OFFLINE') {
+          events.emit('device.offline', {
+            deviceId: device.id,
+            message: `„${device.name}" ist nicht mehr erreichbar`,
+          })
+        } else if (device.status === 'ONLINE' && previous === 'OFFLINE') {
+          events.emit('device.online', {
+            deviceId: device.id,
+            message: `„${device.name}" ist wieder online`,
+          })
+        }
+      }
+    }
+    lastStatusById = new Map(devices.map((d) => [d.id, d.status]))
 
     const result = { devices, errors }
     cache = { at: Date.now(), result }

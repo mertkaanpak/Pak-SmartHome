@@ -739,6 +739,176 @@ input {
   }
 }
 
+/* ============ Timeline ============ */
+.section-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  color: var(--accent);
+  text-decoration: none;
+  font-size: var(--fs-small);
+  font-weight: 550;
+}
+
+.timeline-day {
+  font-size: var(--fs-micro);
+  font-weight: 650;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  margin-bottom: var(--space-2);
+}
+
+.timeline {
+  display: grid;
+}
+
+.timeline-row {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  font-size: var(--fs-small);
+}
+
+.timeline-row + .timeline-row {
+  border-top: 1px solid var(--border);
+}
+
+.timeline-time {
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+  flex-shrink: 0;
+}
+
+.timeline-icon {
+  color: var(--accent);
+  display: grid;
+  place-items: center;
+  align-self: center;
+}
+
+.timeline-message {
+  flex: 1;
+}
+
+.status-row-link {
+  text-decoration: none;
+  color: inherit;
+}
+
+/* ============ Szenen ============ */
+.scene-card {
+  position: relative;
+  padding: var(--space-4);
+  transition: transform var(--dur-fast) var(--ease-out);
+}
+
+.scene-card:active {
+  transform: scale(0.98);
+}
+
+.scene-main {
+  display: grid;
+  gap: var(--space-1);
+  text-align: left;
+  width: 100%;
+}
+
+.scene-icon {
+  color: var(--accent);
+  margin-bottom: var(--space-1);
+}
+
+.scene-name {
+  font-weight: 650;
+}
+
+.scene-meta {
+  color: var(--text-muted);
+  font-size: var(--fs-micro);
+}
+
+.scene-edit {
+  position: absolute;
+  top: var(--space-3);
+  right: var(--space-3);
+  width: 34px;
+  height: 34px;
+}
+
+.scene-action-list {
+  display: grid;
+  gap: var(--space-2);
+}
+
+.scene-action-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.scene-action-name {
+  flex: 1;
+  font-size: var(--fs-small);
+  font-weight: 550;
+}
+
+.segmented {
+  display: flex;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 2px;
+}
+
+.segment {
+  min-width: 44px;
+  padding: 6px 10px;
+  border-radius: 999px;
+  font-size: var(--fs-small);
+  color: var(--text-muted);
+  transition:
+    background var(--dur-fast) var(--ease-out),
+    color var(--dur-fast) var(--ease-out);
+}
+
+.segment.selected {
+  background: var(--accent);
+  color: var(--text-on-accent);
+  font-weight: 600;
+}
+
+.scene-result-list {
+  display: grid;
+  gap: var(--space-2);
+  margin-top: var(--space-4);
+}
+
+.scene-result-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.scene-result-icon {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+}
+
+.scene-result-icon.ok {
+  background: var(--ok-soft);
+  color: var(--ok);
+}
+
+.scene-result-icon.fail {
+  background: var(--danger-soft);
+  color: var(--danger);
+}
+
 /* ============ Anmeldung / Ersteinrichtung ============ */
 .auth-screen {
   min-height: 100dvh;

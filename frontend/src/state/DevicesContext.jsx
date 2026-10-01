@@ -38,10 +38,31 @@ export function DevicesProvider({ children }) {
       if (document.visibilityState === 'visible') load(true)
     }
     document.addEventListener('visibilitychange', onVisible)
+
+    // Live-Updates vom Backend (SSE): Ereignisse werden app-weit als
+    // 'pak:event' weitergereicht; Geräte-/Szenen-Ereignisse stoßen einen
+    // (gebündelten) Refresh an — so bleiben mehrere Geräte synchron.
+    const stream = new EventSource('/api/events/stream')
+    let refreshTimer = null
+    stream.onmessage = (msg) => {
+      try {
+        const event = JSON.parse(msg.data)
+        window.dispatchEvent(new CustomEvent('pak:event', { detail: event }))
+        if (event.type.startsWith('device.') || event.type.startsWith('scene.')) {
+          clearTimeout(refreshTimer)
+          refreshTimer = setTimeout(() => load(true), 1800)
+        }
+      } catch {
+        // kaputte Zeile ignorieren
+      }
+    }
+
     return () => {
       clearInterval(interval)
       clearTimeout(reloadTimer.current)
+      clearTimeout(refreshTimer)
       document.removeEventListener('visibilitychange', onVisible)
+      stream.close()
     }
   }, [load])
 

@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
+import { Link } from 'react-router-dom'
 import { fetchHealth, fetchIntegrations } from '../api.js'
-import { IconRefresh } from '../components/icons.jsx'
+import { IconChevronRight, IconClock, IconRefresh } from '../components/icons.jsx'
 import { getTheme, setTheme } from '../lib/theme.js'
 import { useAuth } from '../state/AuthContext.jsx'
 
@@ -106,6 +107,19 @@ export function MoreView() {
               {option.label}
             </button>
           ))}
+        </div>
+      </section>
+
+      <section className="section">
+        <h2 className="section-title">Protokoll</h2>
+        <div className="card status-list">
+          <Link to="/ereignisse" className="status-row status-row-link">
+            <span className="timeline-icon">
+              <IconClock size={18} />
+            </span>
+            <span className="status-row-label">Ereignis-Timeline</span>
+            <IconChevronRight size={17} />
+          </Link>
         </div>
       </section>
 

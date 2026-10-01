@@ -7,8 +7,12 @@ import { createAdapters } from './integrations/index.js'
 import { createDeviceService } from './core/deviceService.js'
 import { createAudit } from './core/audit.js'
 import { createAuthService } from './core/auth.js'
+import { createEventBus } from './core/events.js'
+import { createSceneService } from './core/sceneService.js'
 import { createAuthRouter } from './routes/auth.js'
 import { createDevicesRouter } from './routes/devices.js'
+import { createEventsRouter } from './routes/events.js'
+import { createScenesRouter } from './routes/scenes.js'
 import { createIntegrationsRouter } from './routes/integrations.js'
 import { createSystemRouter } from './routes/system.js'
 import { createRequireAuth } from './middleware/auth.js'
@@ -27,13 +31,17 @@ const db = openDb()
 const audit = createAudit(db)
 const auth = createAuthService(db, audit)
 const requireAuth = createRequireAuth(auth)
+const events = createEventBus(db)
 const adapters = createAdapters()
-const deviceService = createDeviceService({ db, adapters })
+const deviceService = createDeviceService({ db, adapters, events })
+const scenes = createSceneService({ db, deviceService, events, audit })
 
 // Frontend und Backend laufen hinter demselben Origin (Vite-Proxy bzw.
 // später Reverse Proxy) — deshalb bewusst kein offenes CORS.
-app.use('/api/auth', createAuthRouter(auth))
-app.use('/api/devices', requireAuth, createDevicesRouter(deviceService, audit))
+app.use('/api/auth', createAuthRouter(auth, events))
+app.use('/api/devices', requireAuth, createDevicesRouter(deviceService, audit, events))
+app.use('/api/events', requireAuth, createEventsRouter(events))
+app.use('/api/scenes', requireAuth, createScenesRouter(scenes))
 app.use('/api/integrations', requireAuth, createIntegrationsRouter(adapters))
 app.use('/api/system', requireAuth, createSystemRouter({ db, adapters }))
 

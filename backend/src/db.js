@@ -61,6 +61,41 @@ const migrations = [
       `)
     },
   },
+  {
+    version: 3,
+    name: 'Events und Szenen',
+    up(db) {
+      db.exec(`
+        CREATE TABLE events (
+          id        INTEGER PRIMARY KEY AUTOINCREMENT,
+          time      INTEGER NOT NULL,
+          type      TEXT NOT NULL,                  -- device.command, device.offline, scene.executed, user.login, …
+          device_id TEXT,
+          username  TEXT,
+          message   TEXT NOT NULL,                  -- fertiger deutscher Anzeigetext
+          detail    TEXT                            -- JSON, niemals Secrets
+        );
+        CREATE INDEX idx_events_time ON events(time);
+
+        CREATE TABLE scenes (
+          id   INTEGER PRIMARY KEY AUTOINCREMENT,
+          name TEXT NOT NULL,
+          icon TEXT NOT NULL DEFAULT 'scene',
+          sort INTEGER NOT NULL DEFAULT 0
+        );
+
+        CREATE TABLE scene_actions (
+          id        INTEGER PRIMARY KEY AUTOINCREMENT,
+          scene_id  INTEGER NOT NULL REFERENCES scenes(id) ON DELETE CASCADE,
+          device_id TEXT NOT NULL,
+          command   TEXT NOT NULL,
+          params    TEXT,                           -- JSON, z. B. {"percent":50}
+          sort      INTEGER NOT NULL DEFAULT 0
+        );
+        CREATE INDEX idx_scene_actions_scene ON scene_actions(scene_id);
+      `)
+    },
+  },
 ]
 
 export function openDb(file = config.dbFile) {

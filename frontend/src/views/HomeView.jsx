@@ -1,12 +1,15 @@
 import { useMemo, useState } from 'react'
+import { Link } from 'react-router-dom'
 import { BottomSheet } from '../components/BottomSheet.jsx'
 import { DeviceCard } from '../components/DeviceCard.jsx'
 import { DeviceSheet } from '../components/DeviceSheet.jsx'
 import { DeviceListSkeleton } from '../components/Skeleton.jsx'
-import { IconDown, IconUp } from '../components/icons.jsx'
+import { IconChevronRight, IconDown, IconUp } from '../components/icons.jsx'
 import { useToast } from '../components/Toast.jsx'
 import { useDevices } from '../state/DevicesContext.jsx'
+import { useLiveEvents } from '../hooks/useLiveEvents.js'
 import { groupByRoom } from '../lib/rooms.js'
+import { formatTime } from '../lib/time.js'
 
 function greeting() {
   const hour = new Date().getHours()
@@ -35,6 +38,7 @@ export function HomeView() {
   const [selected, setSelected] = useState(null)
   const [confirmAction, setConfirmAction] = useState(null) // 'open' | 'close'
   const [bulkRunning, setBulkRunning] = useState(false)
+  const { events: recentEvents } = useLiveEvents(3)
 
   const covers = useMemo(() => (devices ?? []).filter((d) => d.type === 'cover'), [devices])
   const favorites = useMemo(() => (devices ?? []).filter((d) => d.favorite), [devices])
@@ -129,6 +133,25 @@ export function HomeView() {
           </div>
         </section>
       ))}
+
+      {recentEvents?.length > 0 && (
+        <section className="section">
+          <div className="section-head">
+            <h2 className="section-title">Letzte Aktivität</h2>
+            <Link to="/ereignisse" className="section-link">
+              Alle <IconChevronRight size={14} />
+            </Link>
+          </div>
+          <div className="card timeline">
+            {recentEvents.slice(0, 3).map((event) => (
+              <div className="timeline-row" key={event.id ?? `${event.time}-${event.message}`}>
+                <span className="timeline-time">{formatTime(event.time)}</span>
+                <span className="timeline-message">{event.message}</span>
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
 
       <DeviceSheet device={selected} onClose={() => setSelected(null)} />
 

@@ -37,6 +37,19 @@ export const sendCommand = (deviceId, command, params) =>
 export const updateDeviceMeta = (deviceId, patch) =>
   api(`/api/devices/${encodeURIComponent(deviceId)}`, json('PATCH', patch))
 
+export const fetchEvents = (limit = 50, before) =>
+  api(`/api/events?limit=${limit}${before ? `&before=${before}` : ''}`)
+
+export const fetchScenes = () => api('/api/scenes')
+
+export const createScene = (scene) => api('/api/scenes', json('POST', scene))
+
+export const updateScene = (id, patch) => api(`/api/scenes/${id}`, json('PATCH', patch))
+
+export const deleteScene = (id) => api(`/api/scenes/${id}`, { method: 'DELETE' })
+
+export const executeScene = (id) => api(`/api/scenes/${id}/execute`, { method: 'POST' })
+
 export const fetchAuthStatus = () => api('/api/auth/status')
 
 export const authLogin = (username, password) =>
