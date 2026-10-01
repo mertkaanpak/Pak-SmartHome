@@ -88,7 +88,8 @@ in `backend/.env` (nicht im Git) — niemals im Frontend oder in Logs.
 | 8 | Räume & Favoriten | 🔶 Backend fertig (`PATCH /api/devices/:id`), Verwaltungs-UI folgt |
 | 9 | Events & Timeline (SSE-Live-Updates, Tagesgruppierung, Filter) | ✅ |
 | 10 | Szenen (Editor, Vorlagen, Teilerfolgs-Ergebnis) | ✅ |
-| 11–16 | Push, Automationen, WireGuard, Health-Feinschliff, Docker, UI-Feinschliff | ⬜ |
+| 12 | Automationen (Uhrzeit/Sonnenauf-/-untergang ± Offset, Wochentage → Szene; Verwaltung komplett in der App) | ✅ |
+| 11, 13–16 | Push, WireGuard, Health-Feinschliff, Docker, UI-Feinschliff | ⬜ |
 
 ## Troubleshooting
 

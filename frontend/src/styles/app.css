@@ -909,6 +909,83 @@ input {
   color: var(--danger);
 }
 
+/* ============ Automationen ============ */
+.automation-card {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-4);
+}
+
+.automation-main {
+  flex: 1;
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+  text-align: left;
+  min-width: 0;
+}
+
+.automation-icon {
+  color: var(--accent);
+  margin-top: 2px;
+}
+
+.automation-info {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.automation-name {
+  font-weight: 600;
+}
+
+.automation-meta {
+  color: var(--text-muted);
+  font-size: var(--fs-small);
+}
+
+.automation-next {
+  color: var(--text-secondary);
+  font-size: var(--fs-micro);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Schalter (iOS-artig, zurückhaltend) */
+.switch {
+  width: 46px;
+  height: 28px;
+  border-radius: 999px;
+  background: var(--surface-pressed);
+  border: 1px solid var(--border-strong);
+  position: relative;
+  flex-shrink: 0;
+  transition: background var(--dur-med) var(--ease-out);
+}
+
+.switch::after {
+  content: '';
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+  transition: transform var(--dur-med) var(--ease-out);
+}
+
+.switch.on {
+  background: var(--ok);
+  border-color: var(--ok);
+}
+
+.switch.on::after {
+  transform: translateX(18px);
+}
+
 /* ============ Anmeldung / Ersteinrichtung ============ */
 .auth-screen {
   min-height: 100dvh;

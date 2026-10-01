@@ -14,4 +14,10 @@ export const config = {
   ring: {
     refreshToken: process.env.RING_REFRESH_TOKEN ?? '',
   },
+
+  // Heim-Standort für Sonnenauf-/-untergangs-Automationen
+  location:
+    process.env.HOME_LAT && process.env.HOME_LON
+      ? { lat: Number(process.env.HOME_LAT), lon: Number(process.env.HOME_LON) }
+      : null,
 }

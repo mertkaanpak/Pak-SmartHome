@@ -78,7 +78,7 @@ export function createSceneService({ db, deviceService, events, audit }) {
       audit?.(username, 'scene.deleted', { scene: existing.name })
     },
 
-    async execute(id, username) {
+    async execute(id, username, { emitEvent = true } = {}) {
       const scene = getScene(id)
       const results = []
       for (const action of scene.actions) {
@@ -104,7 +104,10 @@ export function createSceneService({ db, deviceService, events, audit }) {
         }
       }
       const ok = results.filter((r) => r.ok).length
-      events?.emit('scene.executed', {
+      // emitEvent=false: Aufrufer (z. B. Automation) meldet selbst ein
+      // zusammengefasstes Ereignis — sonst stünde jeder Lauf doppelt in der Timeline.
+      if (emitEvent)
+        events?.emit('scene.executed', {
         username,
         message: `Szene „${scene.name}" ausgeführt — ${ok} von ${results.length} Aktionen erfolgreich`,
         detail: { scene: scene.name, ok, total: results.length },

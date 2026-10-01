@@ -9,6 +9,8 @@ import { createAudit } from './core/audit.js'
 import { createAuthService } from './core/auth.js'
 import { createEventBus } from './core/events.js'
 import { createSceneService } from './core/sceneService.js'
+import { createAutomationService } from './core/automationService.js'
+import { createAutomationsRouter } from './routes/automations.js'
 import { createAuthRouter } from './routes/auth.js'
 import { createDevicesRouter } from './routes/devices.js'
 import { createEventsRouter } from './routes/events.js'
@@ -35,6 +37,13 @@ const events = createEventBus(db)
 const adapters = createAdapters()
 const deviceService = createDeviceService({ db, adapters, events })
 const scenes = createSceneService({ db, deviceService, events, audit })
+const automations = createAutomationService({
+  db,
+  scenes,
+  events,
+  audit,
+  location: config.location,
+})
 
 // Frontend und Backend laufen hinter demselben Origin (Vite-Proxy bzw.
 // später Reverse Proxy) — deshalb bewusst kein offenes CORS.
@@ -42,11 +51,14 @@ app.use('/api/auth', createAuthRouter(auth, events))
 app.use('/api/devices', requireAuth, createDevicesRouter(deviceService, audit, events))
 app.use('/api/events', requireAuth, createEventsRouter(events))
 app.use('/api/scenes', requireAuth, createScenesRouter(scenes))
+app.use('/api/automations', requireAuth, createAutomationsRouter(automations))
 app.use('/api/integrations', requireAuth, createIntegrationsRouter(adapters))
 app.use('/api/system', requireAuth, createSystemRouter({ db, adapters }))
 
 app.use(notFound)
 app.use(errorHandler)
+
+automations.start()
 
 const server = app.listen(config.port, () => {
   log.info(`SmartHome-Backend läuft auf http://localhost:${config.port}`)
@@ -54,6 +66,7 @@ const server = app.listen(config.port, () => {
 
 function shutdown(signal) {
   log.info('Beende Server', { signal })
+  automations.stop()
   server.close(() => {
     db.close()
     process.exit(0)

@@ -96,6 +96,24 @@ const migrations = [
       `)
     },
   },
+  {
+    version: 4,
+    name: 'Automationen',
+    up(db) {
+      db.exec(`
+        CREATE TABLE automations (
+          id             INTEGER PRIMARY KEY AUTOINCREMENT,
+          name           TEXT NOT NULL,
+          enabled        INTEGER NOT NULL DEFAULT 1,
+          trigger_type   TEXT NOT NULL,              -- 'time' | 'sun'
+          trigger_config TEXT NOT NULL,              -- JSON: {time} bzw. {event, offsetMinutes}
+          weekdays       TEXT NOT NULL,              -- JSON-Array, 0 = Montag … 6 = Sonntag
+          scene_id       INTEGER REFERENCES scenes(id) ON DELETE SET NULL,
+          last_run       INTEGER
+        );
+      `)
+    },
+  },
 ]
 
 export function openDb(file = config.dbFile) {

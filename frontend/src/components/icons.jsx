@@ -177,6 +177,12 @@ export const IconClock = (props) => (
   </Icon>
 )
 
+export const IconBolt = (props) => (
+  <Icon {...props}>
+    <path d="M13 3 5.5 13.5h4.5L11 21l7.5-10.5H14z" />
+  </Icon>
+)
+
 export const SCENE_ICONS = {
   scene: IconScenes,
   moon: IconMoon,

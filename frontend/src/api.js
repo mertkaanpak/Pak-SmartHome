@@ -50,6 +50,16 @@ export const deleteScene = (id) => api(`/api/scenes/${id}`, { method: 'DELETE' }
 
 export const executeScene = (id) => api(`/api/scenes/${id}/execute`, { method: 'POST' })
 
+export const fetchAutomations = () => api('/api/automations')
+
+export const createAutomation = (automation) => api('/api/automations', json('POST', automation))
+
+export const updateAutomation = (id, patch) => api(`/api/automations/${id}`, json('PATCH', patch))
+
+export const deleteAutomation = (id) => api(`/api/automations/${id}`, { method: 'DELETE' })
+
+export const runAutomation = (id) => api(`/api/automations/${id}/run`, { method: 'POST' })
+
 export const fetchAuthStatus = () => api('/api/auth/status')
 
 export const authLogin = (username, password) =>
