@@ -7,6 +7,14 @@ export default defineConfig({
     react(),
     VitePWA({
       registerType: 'autoUpdate',
+      workbox: {
+        // Neue Versionen sofort aktivieren und offene Tabs übernehmen —
+        // sonst klebt die PWA nach einem Update an der alten Fassung
+        skipWaiting: true,
+        clientsClaim: true,
+        // API-Aufrufe nie vom Service Worker beantworten lassen
+        navigateFallbackDenylist: [/^\/api\//],
+      },
       manifest: {
         name: 'Pak SmartHome',
         short_name: 'SmartHome',
