@@ -12,7 +12,12 @@ $TaskName   = 'PakSmartHome'
 function Step($m) { Write-Host "`n==> $m" -ForegroundColor Cyan }
 
 Step 'Hole neueste Version'
-git -C $InstallDir pull --ff-only
+# Hart auf den Repo-Stand abgleichen. npm install verändert lokal die
+# package-lock.json, was ein normales `git pull` blockieren würde.
+# Secrets/Daten (.env, data/, gateway-Binary) sind git-ignoriert und
+# bleiben unangetastet.
+git -C $InstallDir fetch origin
+git -C $InstallDir reset --hard origin/main
 
 Step 'Backend-Abhängigkeiten'
 Push-Location "$InstallDir\backend"; npm install --omit=dev; Pop-Location

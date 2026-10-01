@@ -52,7 +52,11 @@ if (-not (Have git)) {
 # --- Projekt holen/aktualisieren ---
 Step "Hole Projekt nach $InstallDir"
 if (Test-Path "$InstallDir\.git") {
-    git -C $InstallDir pull --ff-only
+    # Hart abgleichen – lokale Änderungen an package-lock.json durch
+    # npm install würden ein normales pull blockieren. Secrets/Daten sind
+    # git-ignoriert und bleiben erhalten.
+    git -C $InstallDir fetch origin
+    git -C $InstallDir reset --hard origin/main
 } else {
     git clone $RepoUrl $InstallDir
 }
