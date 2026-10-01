@@ -14,11 +14,19 @@ const PUSH_RULES = {
 export function createPushService({ db, settings, events }) {
   const log = createLogger('push')
 
+  // Apple/Push-Dienste lehnen ungültige VAPID-"sub" ab (u. a. die
+  // reservierte Endung .local -> 403). Daher eine gültige mailto-Kennung;
+  // die Schlüssel bleiben erhalten, nur das Subject wird ggf. korrigiert.
+  const SUBJECT = 'mailto:notify@paksmarthome.app'
   let vapid = settings.get('push_vapid')
   if (!vapid?.publicKey) {
-    vapid = { ...webpush.generateVAPIDKeys(), subject: 'mailto:admin@pak-smarthome.local' }
+    vapid = { ...webpush.generateVAPIDKeys(), subject: SUBJECT }
     settings.set('push_vapid', vapid)
     log.info('VAPID-Schlüssel erzeugt')
+  } else if (vapid.subject !== SUBJECT) {
+    vapid = { ...vapid, subject: SUBJECT }
+    settings.set('push_vapid', vapid)
+    log.info('VAPID-Subject korrigiert')
   }
   webpush.setVapidDetails(vapid.subject, vapid.publicKey, vapid.privateKey)
 
