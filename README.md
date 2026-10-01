@@ -86,7 +86,9 @@ in `backend/.env` (nicht im Git) — niemals im Frontend oder in Logs.
 | 6 | ONVIF/RTSP-Kamerastreaming | ⬜ benötigt Kameramodell |
 | 7 | Dashboard mit echten Daten | 🔶 Rollläden fertig, Rest folgt mit den Integrationen |
 | 8 | Räume & Favoriten | 🔶 Backend fertig (`PATCH /api/devices/:id`), Verwaltungs-UI folgt |
-| 9–16 | Events/Timeline, Szenen, Push, Automationen, WireGuard, Health, Docker, UI-Feinschliff | ⬜ |
+| 9 | Events & Timeline (SSE-Live-Updates, Tagesgruppierung, Filter) | ✅ |
+| 10 | Szenen (Editor, Vorlagen, Teilerfolgs-Ergebnis) | ✅ |
+| 11–16 | Push, Automationen, WireGuard, Health-Feinschliff, Docker, UI-Feinschliff | ⬜ |
 
 ## Troubleshooting
 
