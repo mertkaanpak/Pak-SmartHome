@@ -1,7 +1,10 @@
 import { Router } from 'express'
 import { z } from 'zod'
-import { RingApi } from 'ring-client-api'
-import { RingRestClient } from 'ring-client-api/rest-client'
+// Gepflegter Fork des ring-mqtt-Maintainers: enthält die Fixes für Rings
+// Auth-Umstellung vom Februar 2026 (Cloudflare WAF verlangt App-identische
+// Anfragen; das Original ring-client-api 14.3.0 ist dafür zu alt).
+import { RingApi } from '@tsightler/ring-client-api'
+import { RingRestClient } from '@tsightler/ring-client-api/rest-client'
 import { config } from '../../config.js'
 import { createLogger } from '../../logger.js'
 import { HttpError, IntegrationError } from '../../errors.js'
